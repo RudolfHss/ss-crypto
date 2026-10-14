@@ -3,28 +3,10 @@
   "exchange": "Coinbase",
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-10-14T07:00:21.612660+00:00",
+  "retrieved_at_utc": "2026-10-14T12:46:01.382596+00:00",
   "closed_candles_per_timeframe": 200,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-09-10T20:00:00+00:00",
-        "open_time_ms": 1789070400000,
-        "open": 77185.08,
-        "high": 77332.6,
-        "low": 76492.34,
-        "close": 76596.43,
-        "volume_base": 11.34201221
-      },
-      {
-        "open_time_utc": "2026-09-11T00:00:00+00:00",
-        "open_time_ms": 1789084800000,
-        "open": 76610.6,
-        "high": 77002.61,
-        "low": 76606.79,
-        "close": 76921.21,
-        "volume_base": 2.58822299
-      },
       {
         "open_time_utc": "2026-09-11T04:00:00+00:00",
         "open_time_ms": 1789099200000,
@@ -1806,6 +1788,24 @@
         "low": 83241.83,
         "close": 83675.06,
         "volume_base": 4.37140183
+      },
+      {
+        "open_time_utc": "2026-10-14T04:00:00+00:00",
+        "open_time_ms": 1791950400000,
+        "open": 83681.9,
+        "high": 83892.6,
+        "low": 83386.1,
+        "close": 83632.02,
+        "volume_base": 2.58467865
+      },
+      {
+        "open_time_utc": "2026-10-14T08:00:00+00:00",
+        "open_time_ms": 1791964800000,
+        "open": 83666.94,
+        "high": 84114.51,
+        "low": 83049.04,
+        "close": 83462.37,
+        "volume_base": 2.7795247
       }
     ],
     "1D": [

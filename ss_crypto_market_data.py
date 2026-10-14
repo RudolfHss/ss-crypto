@@ -48,10 +48,42 @@ def normalize(rows, seconds):
     return out
 
 
-def binance(tf):
-    interval = {'4H':'4h','1D':'1d','1W':'1w'}[tf]
-    url = 'https://api.binance.com/api/v3/klines?' + urllib.parse.urlencode({'symbol':'BTCUSDT','interval':interval,'limit':COUNT+2})
-    return normalize(get(url), TIMEFRAMES[tf])
+def coinbase(tf):
+    # Exchange API supports 1H and 1D, but not native 4H or 1W.
+    seconds = TIMEFRAMES[tf]
+    granularity = 3600 if tf == '4H' else 86400
+    # UTC weeks start on Monday; Unix epoch started on Thursday.
+    offset = 4 * 86400 if tf == '1W' else 0
+    end = ((int(time.time()) - offset) // seconds) * seconds + offset
+    start = end - COUNT * seconds
+    candles = {}
+    cursor = start
+    while cursor < end:
+        page_end = min(cursor + 250 * granularity, end)
+        params = {'granularity': granularity, 'start': iso(cursor * 1000),
+                  'end': iso(page_end * 1000)}
+        url = 'https://api.exchange.coinbase.com/products/BTC-USDT/candles?' + urllib.parse.urlencode(params)
+        payload = get(url)
+        if not isinstance(payload, list):
+            raise ValueError('Coinbase error: ' + str(payload))
+        for row in payload:
+            t, low, high, opening, close, volume = row
+            t = int(t)
+            if cursor <= t < page_end:
+                candles[t] = [t, opening, high, low, close, volume]
+        cursor = page_end
+        time.sleep(0.15)
+    rows = []
+    for bucket in range(start, end, seconds):
+        parts = []
+        for t in range(bucket, bucket + seconds, granularity):
+            if t not in candles:
+                raise ValueError(f'Coinbase missing candle at {iso(t * 1000)}')
+            parts.append(candles[t])
+        rows.append([bucket, float(parts[0][1]), max(float(r[2]) for r in parts),
+                     min(float(r[3]) for r in parts), float(parts[-1][4]),
+                     sum(float(r[5]) for r in parts)])
+    return normalize(rows, seconds)
 
 
 def okx(tf):
@@ -76,7 +108,7 @@ def bybit(tf):
 def main():
     failures = []
     # One exchange must supply all frames, avoiding mixed-exchange indicator inputs.
-    for name, fn in [('Binance',binance),('OKX',okx),('Bybit',bybit)]:
+    for name, fn in [('Coinbase',coinbase),('OKX',okx),('Bybit',bybit)]:
         try:
             frames = {tf: fn(tf) for tf in TIMEFRAMES}
             result = {'status':'ok','exchange':name,'market':'BTC/USDT','market_type':'spot',

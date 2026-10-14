@@ -1,6 +1,8 @@
 # SS CRYPTO market data collector
 
-Runs every 30 minutes on GitHub Actions and manually with **Actions > SS CRYPTO BTC data > Run workflow**. Tries Binance, OKX, Bybit for 200 closed BTC/USDT spot OHLCV candles on 4H/1D/1W, validates and writes `ss_crypto_btc_ohlcv.json` into the repository.
+Runs every 30 minutes on GitHub Actions and manually with **Actions > SS CRYPTO BTC data > Run workflow**. Tries Coinbase, OKX, Bybit for 200 closed BTC/USDT spot OHLCV candles on 4H/1D/1W, validates and writes `ss_crypto_btc_ohlcv.json` into the repository.
+
+Coinbase uses the public Exchange API for BTC-USDT, without API keys. Four-hour candles are aggregated from four hourly candles; weekly candles from seven daily candles, starting Monday at 00:00 UTC. Requests are paginated below the 300-candle API limit. Missing constituent candles reject the source rather than producing incomplete aggregates. All three timeframes in each output come from the same exchange.
 
 ## Setup
 1. Create a GitHub repository and upload `ss_crypto_market_data.py` and `.github/workflows/market-data.yml` preserving paths.

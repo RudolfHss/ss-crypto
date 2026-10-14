@@ -3,19 +3,10 @@
   "exchange": "Coinbase",
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-10-14T12:46:01.382596+00:00",
+  "retrieved_at_utc": "2026-10-14T17:52:58.483693+00:00",
   "closed_candles_per_timeframe": 200,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-09-11T04:00:00+00:00",
-        "open_time_ms": 1789099200000,
-        "open": 76970.82,
-        "high": 77394.11,
-        "low": 76970.82,
-        "close": 77267.69,
-        "volume_base": 2.75242791
-      },
       {
         "open_time_utc": "2026-09-11T08:00:00+00:00",
         "open_time_ms": 1789113600000,
@@ -1806,6 +1797,15 @@
         "low": 83049.04,
         "close": 83462.37,
         "volume_base": 2.7795247
+      },
+      {
+        "open_time_utc": "2026-10-14T12:00:00+00:00",
+        "open_time_ms": 1791979200000,
+        "open": 83540.63,
+        "high": 83927.62,
+        "low": 81600.0,
+        "close": 81681.23,
+        "volume_base": 12.65626846
       }
     ],
     "1D": [

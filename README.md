@@ -1,13 +1,13 @@
-# SS CRYPTO market data collector
+# SS CRYPTO
 
-Runs every 30 minutes on GitHub Actions and manually with **Actions > SS CRYPTO BTC data > Run workflow**. Tries Coinbase, OKX, Bybit for 200 closed BTC/USDT spot OHLCV candles on 4H/1D/1W, validates and writes `ss_crypto_btc_ohlcv.json` into the repository.
+BTC/USDT spotadatok, CoinGecko dominancia és auditált napi jelentés. Nincs automatikus kereskedés vagy élő scalp/perpetual jelzés.
 
-Coinbase uses the public Exchange API for BTC-USDT, without API keys. Four-hour candles are aggregated from four hourly candles; weekly candles from seven daily candles, starting Monday at 00:00 UTC. Requests are paginated below the 300-candle API limit. Missing constituent candles reject the source rather than producing incomplete aggregates. All three timeframes in each output come from the same exchange.
+- BTC: félóránként; elsődlegesen Coinbase, tartalékként OKX/Bybit. Mindhárom idősík ugyanarról a forrásról. UTC-igazítás, teljes heti folytonosság és lezártság ellenőrzött. A 4H és napos előzmény 1000 gyertya; a heti elérhető listázási történettől függ. Rövid bemelegítésből EMA200 nem jelenik meg.
+- CoinGecko: óránként, négy dominancia és TOTAL/TOTAL2/TOTAL3, időbélyegzett havi JSON-előzménnyel. Nem közvetlen TradingView CRYPTOCAP-adat. Valódi API-adatokból külön ETH/BTC-relatív erő, stabilcoin-abszolút kapitalizáció és rögzített 12-token részvétel; hiányos lefedettség látható hiány marad.
+- Napi lánc: **07:30 Europe/Budapest**, téli/nyári időváltással; friss gyűjtés -> minőségkapu -> PDF/Markdown/JSON -> ellenőrzés -> GitHub. Késések lehetségesek.
 
-## Setup
-1. Create a GitHub repository and upload `ss_crypto_market_data.py` and `.github/workflows/market-data.yml` preserving paths.
-2. Enable Actions and workflow write permissions under Settings > Actions > General > Workflow permissions.
-3. Run workflow manually; verify green run, artifact and generated JSON.
-4. For public repository, JSON can be read via `https://raw.githubusercontent.com/OWNER/REPO/main/ss_crypto_btc_ohlcv.json` (replace OWNER/REPO and branch). Public repositories expose data to everyone.
+[Legutóbbi rendes napi jelentés](reports/README.md) · [Részletes módszertan és korlátok](DAILY_REPORT.md) · [Napi workflow](https://github.com/RudolfHss/ss-crypto/actions/workflows/daily-report.yml)
 
-**Caution:** GitHub scheduled workflows can run late or be skipped, so not suitable for minute-scale scalping or real-time trading. ChatGPT automations cannot automatically ingest this file without a separately configured integration and tested access. No exchange API keys are needed. No trades are executed.
+Az adatállapot friss, korlátozott vagy nem értékelhető. Hibás/elavult adatból nem keletkezik aktuális ajánlás vagy új trade jelzés. A korábbi ChatGPT-automatizmust ez a projekt nem módosítja.
+
+API-kulcs csak a `COINGECKO_DEMO_API_KEY` GitHub Actions Secretben tárolható. Ha a nyilvános API kulcs nélkül működik, nem kell secret. Kulcsot ne írj chatbe vagy forráskódba.

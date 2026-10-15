@@ -1,129 +1,124 @@
 #!/usr/bin/env python3
-"""SS CRYPTO: public BTC/USDT spot OHLCV collector with exchange failover.
-Run in a network-enabled environment: python ss_crypto_market_data.py
-"""
+"""Closed UTC BTC/USDT candles, with one exchange for the entire dataset."""
 import datetime as dt
 import json
+from pathlib import Path
 import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from ss_crypto_analysis import UTC, PERIODS, boundary, expected_close, validate_candles
 
-COUNT = 200
-TIMEFRAMES = {'4H': 4*3600, '1D': 86400, '1W': 7*86400}
-TIMEOUT = 12
-
+COUNTS={'4H':1000,'1D':1000,'1W':600}
+MINIMUMS={'4H':1000,'1D':1000,'1W':200}
+TIMEFRAMES=PERIODS
+OKX_BARS={'4H':'4H','1D':'1Dutc','1W':'1Wutc'}
 
 def get(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'SS-CRYPTO-data-check/1.0', 'Accept': 'application/json'})
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        return json.load(r)
+    for attempt in range(3):
+        try:
+            req=urllib.request.Request(url,headers={'User-Agent':'SS-CRYPTO/2.0','Accept':'application/json'})
+            with urllib.request.urlopen(req,timeout=25) as response:return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code not in [429,500,502,503,504] or attempt==2:raise
+        except (urllib.error.URLError,TimeoutError):
+            if attempt==2:raise
+        time.sleep(2*(attempt+1))
 
+def iso(seconds):return dt.datetime.fromtimestamp(seconds,UTC).isoformat()
 
-def iso(ms):
-    return dt.datetime.fromtimestamp(ms / 1000, dt.timezone.utc).isoformat()
-
-
-def normalize(rows, seconds):
-    out = []
-    for r in rows:
-        t, o, h, l, c, v = r[:6]
-        t = int(t)
-        if t < 10**11: t *= 1000
-        o, h, l, c, v = map(float, (o, h, l, c, v))
-        if not (0 < l <= min(o,c) <= max(o,c) <= h and v >= 0):
-            raise ValueError('Invalid OHLCV candle')
-        out.append({'open_time_utc': iso(t), 'open_time_ms': t, 'open':o, 'high':h, 'low':l, 'close':c, 'volume_base':v})
-    out.sort(key=lambda x: x['open_time_ms'])
-    out = [x for x in out if x['open_time_ms'] + seconds*1000 <= int(time.time()*1000)]
-    if len(out) < COUNT:
-        raise ValueError(f'Only {len(out)} closed candles, need {COUNT}')
-    out = out[-COUNT:]
-    for a,b in zip(out, out[1:]):
-        if b['open_time_ms'] - a['open_time_ms'] != seconds*1000 and seconds != 7*86400:
-            raise ValueError('Missing/irregular candle interval')
-    if int(time.time()*1000) - (out[-1]['open_time_ms'] + seconds*1000) > seconds*1000*2:
-        raise ValueError('Stale candles')
+def normalize(rows,tf,now=None):
+    now=now or dt.datetime.now(UTC)
+    end=expected_close(tf,now)
+    unique={}
+    for raw in rows:
+        t,o,h,l,c,v=raw[:6]
+        t=int(t);t=t//1000 if t>10**11 else t
+        row={'open_time_utc':iso(t),'open_time_ms':t*1000,'open':float(o),'high':float(h),'low':float(l),'close':float(c),'volume_base':float(v)}
+        if t+PERIODS[tf] > end.timestamp():continue
+        if t in unique and unique[t]!=row:raise ValueError('Conflicting duplicate candle')
+        unique[t]=row
+    out=[unique[t] for t in sorted(unique)][-COUNTS[tf]:]
+    last=validate_candles(out,tf,now,MINIMUMS[tf])
+    if last!=end:raise ValueError(f'{tf}: last close {last} differs from expected {end}')
     return out
 
+def coinbase(tf,now=None):
+    now=now or dt.datetime.now(UTC)
+    seconds=PERIODS[tf];granularity=3600 if tf=='4H' else 86400
+    end=int(expected_close(tf,now).timestamp());start=end-COUNTS[tf]*seconds
+    candles={};cursor=start
+    while cursor<end:
+        page_end=min(cursor+250*granularity,end)
+        params=urllib.parse.urlencode({'granularity':granularity,'start':iso(cursor),'end':iso(page_end)})
+        data=get('https://api.exchange.coinbase.com/products/BTC-USDT/candles?'+params)
+        if not isinstance(data,list):raise ValueError('Invalid Coinbase response')
+        for t,l,h,o,c,v in data:
+            t=int(t)
+            if cursor<=t<page_end:
+                row=[t,float(o),float(h),float(l),float(c),float(v)]
+                if t in candles and candles[t]!=row:raise ValueError('Conflicting Coinbase candle')
+                candles[t]=row
+        cursor=page_end;time.sleep(.12)
+    rows=[];started=False
+    for bucket in range(start,end,seconds):
+        times=list(range(bucket,bucket+seconds,granularity))
+        if not all(t in candles for t in times):
+            # Short weekly listing history may omit a prefix, never an interior gap.
+            if tf=='1W' and not started:continue
+            raise ValueError(f'Coinbase incomplete {tf} bucket {iso(bucket)}')
+        started=True;parts=[candles[t] for t in times]
+        # Validate every underlying candle too, before aggregation can conceal it.
+        for r in parts:
+            if not 0<r[3]<=min(r[1],r[4])<=max(r[1],r[4])<=r[2] or r[5]<0:raise ValueError('Invalid Coinbase constituent')
+        rows.append([bucket,parts[0][1],max(r[2] for r in parts),min(r[3] for r in parts),parts[-1][4],sum(r[5] for r in parts)])
+    return normalize(rows,tf,now)
 
-def coinbase(tf):
-    # Exchange API supports 1H and 1D, but not native 4H or 1W.
-    seconds = TIMEFRAMES[tf]
-    granularity = 3600 if tf == '4H' else 86400
-    # UTC weeks start on Monday; Unix epoch started on Thursday.
-    offset = 4 * 86400 if tf == '1W' else 0
-    end = ((int(time.time()) - offset) // seconds) * seconds + offset
-    start = end - COUNT * seconds
-    candles = {}
-    cursor = start
-    while cursor < end:
-        page_end = min(cursor + 250 * granularity, end)
-        params = {'granularity': granularity, 'start': iso(cursor * 1000),
-                  'end': iso(page_end * 1000)}
-        url = 'https://api.exchange.coinbase.com/products/BTC-USDT/candles?' + urllib.parse.urlencode(params)
-        payload = get(url)
-        if not isinstance(payload, list):
-            raise ValueError('Coinbase error: ' + str(payload))
-        for row in payload:
-            t, low, high, opening, close, volume = row
-            t = int(t)
-            if cursor <= t < page_end:
-                candles[t] = [t, opening, high, low, close, volume]
-        cursor = page_end
-        time.sleep(0.15)
-    rows = []
-    for bucket in range(start, end, seconds):
-        parts = []
-        for t in range(bucket, bucket + seconds, granularity):
-            if t not in candles:
-                raise ValueError(f'Coinbase missing candle at {iso(t * 1000)}')
-            parts.append(candles[t])
-        rows.append([bucket, float(parts[0][1]), max(float(r[2]) for r in parts),
-                     min(float(r[3]) for r in parts), float(parts[-1][4]),
-                     sum(float(r[5]) for r in parts)])
-    return normalize(rows, seconds)
+def okx(tf,now=None):
+    now=now or dt.datetime.now(UTC);rows=[];after=None
+    while len(rows)<COUNTS[tf]:
+        params={'instId':'BTC-USDT','bar':OKX_BARS[tf],'limit':100}
+        if after is not None:params['after']=after
+        payload=get('https://www.okx.com/api/v5/market/history-candles?'+urllib.parse.urlencode(params))
+        if payload.get('code')!='0':raise ValueError('OKX request rejected')
+        page=payload.get('data',[])
+        if not page:break
+        oldest=min(int(r[0]) for r in page)
+        if after is not None and oldest>=int(after):raise ValueError('OKX pagination did not advance')
+        after=str(oldest)
+        rows.extend(r[:6] for r in page if str(r[8])=='1' and int(r[0])/1000+PERIODS[tf]<=expected_close(tf,now).timestamp())
+        time.sleep(.12)
+    return normalize(rows,tf,now)
 
-
-def okx(tf):
-    # OKX recent candles endpoint supports up to 300 candles.
-    bar = {'4H':'4H','1D':'1D','1W':'1W'}[tf]
-    url = 'https://www.okx.com/api/v5/market/candles?' + urllib.parse.urlencode({'instId':'BTC-USDT','bar':bar,'limit':COUNT+2})
-    payload = get(url)
-    if payload.get('code') != '0': raise ValueError('OKX error: '+str(payload.get('msg')))
-    # OKX rows: ts,o,h,l,c,vol,volCcy,volCcyQuote,confirm
-    rows = [r[:6] for r in payload['data'] if str(r[8]) == '1']
-    return normalize(rows, TIMEFRAMES[tf])
-
-
-def bybit(tf):
-    interval = {'4H':'240','1D':'D','1W':'W'}[tf]
-    url = 'https://api.bybit.com/v5/market/kline?' + urllib.parse.urlencode({'category':'spot','symbol':'BTCUSDT','interval':interval,'limit':COUNT+2})
-    payload = get(url)
-    if payload.get('retCode') != 0: raise ValueError('Bybit error: '+str(payload.get('retMsg')))
-    return normalize(payload['result']['list'], TIMEFRAMES[tf])
-
+def bybit(tf,now=None):
+    now=now or dt.datetime.now(UTC);rows=[];end=int(expected_close(tf,now).timestamp()*1000)-1
+    while len(rows)<COUNTS[tf]:
+        params={'category':'spot','symbol':'BTCUSDT','interval':{'4H':'240','1D':'D','1W':'W'}[tf],'limit':1000,'end':end}
+        payload=get('https://api.bybit.com/v5/market/kline?'+urllib.parse.urlencode(params))
+        if payload.get('retCode')!=0:raise ValueError('Bybit request rejected')
+        page=payload.get('result',{}).get('list',[])
+        if not page:break
+        oldest=min(int(r[0]) for r in page)
+        if oldest>end:raise ValueError('Bybit pagination did not advance')
+        rows.extend(page);end=oldest-1;time.sleep(.12)
+    return normalize(rows,tf,now)
 
 def main():
-    failures = []
-    # One exchange must supply all frames, avoiding mixed-exchange indicator inputs.
-    for name, fn in [('Coinbase',coinbase),('OKX',okx),('Bybit',bybit)]:
+    path=Path('ss_crypto_btc_ohlcv.json');previous=None
+    if path.exists():
+        try:previous=json.loads(path.read_text(encoding='utf-8')).get('exchange')
+        except (ValueError,OSError):pass
+    failures=[];as_of=dt.datetime.now(UTC)
+    for name,fn in [('Coinbase',coinbase),('OKX',okx),('Bybit',bybit)]:
         try:
-            frames = {tf: fn(tf) for tf in TIMEFRAMES}
-            result = {'status':'ok','exchange':name,'market':'BTC/USDT','market_type':'spot',
-                      'retrieved_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
-                      'closed_candles_per_timeframe':COUNT,'timeframes':frames,'failed_sources':failures}
-            with open('ss_crypto_btc_ohlcv.json','w',encoding='utf-8') as f:
-                json.dump(result,f,ensure_ascii=False,indent=2)
-            print(f'OK: {name}, {COUNT} closed candles each on 4H, 1D, 1W. Saved ss_crypto_btc_ohlcv.json')
-            return 0
-        except Exception as exc:
-            failures.append({'exchange':name,'reason':f'{type(exc).__name__}: {exc}'})
-            print(f'{name}: FAILED: {exc}', file=sys.stderr)
-    print(json.dumps({'status':'no_verified_data','failed_sources':failures},ensure_ascii=False,indent=2))
-    return 1
+            frames={tf:fn(tf,as_of) for tf in PERIODS}
+            result={'schema_version':2,'status':'ok','exchange':name,'previous_exchange':previous,'source_changed':previous is not None and previous!=name,'market':'BTC/USDT','market_type':'spot','retrieved_at_utc':dt.datetime.now(UTC).isoformat(),'collection_as_of_utc':as_of.isoformat(),'timezone':'UTC; daily 00:00; weekly Monday 00:00','requested_counts':COUNTS,'actual_counts':{tf:len(rows) for tf,rows in frames.items()},'ema200_minimum':1000,'timeframes':frames,'failed_sources':failures,'volume_method':'base BTC volume; one exchange only; no cross-exchange volume comparison'}
+            temp=path.with_suffix('.tmp');temp.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8');temp.replace(path)
+            print(json.dumps({'exchange':name,'counts':result['actual_counts'],'source_changed':result['source_changed']}));return 0
+        except Exception as error:
+            failures.append({'exchange':name,'reason':f'{type(error).__name__}: {error}'})
+            print(f'{name}: {error}',file=sys.stderr)
+    print(json.dumps({'status':'no_verified_data','failed_sources':failures}));return 1
 
-
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__=='__main__':sys.exit(main())

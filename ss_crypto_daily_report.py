@@ -1,213 +1,292 @@
-"""SS CRYPTO daily report: read-only BTC and CoinGecko integration."""
+"""Audited SS CRYPTO report. One document model renders JSON, Markdown and PDF."""
 import argparse
 import datetime as dt
+import hashlib
 import json
 import math
 from pathlib import Path
-import urllib.error
-import urllib.request
 from zoneinfo import ZoneInfo
+from ss_crypto_analysis import UTC, PERIODS, QUALITY, timestamp, age_status, finite, analyse_btc
 
-UTC = dt.timezone.utc
-BASE = 'https://raw.githubusercontent.com/RudolfHss/ss-crypto/'
-TF = {'4H': 14400, '1D': 86400, '1W': 604800}
-KEYS = ['BTC.D', 'ETH.D', 'USDT.D', 'USDC.D', 'TOTAL', 'TOTAL2', 'TOTAL3']
+KEYS=['BTC.D','ETH.D','USDT.D','USDC.D','TOTAL','TOTAL2','TOTAL3']
+UNIVERSE=['ethereum','solana','binancecoin','ripple','dogecoin','cardano','chainlink','avalanche-2','polkadot','uniswap','litecoin','near']
+UNIVERSE_VERSION='fixed-v1-2026-10-15'
 
-def stamp(value):
-    return dt.datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(UTC)
+def read(path):
+    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
 
-def get_json(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'SS-CRYPTO-daily-report/1.0'})
-    with urllib.request.urlopen(req, timeout=30) as response:
-        return json.load(response)
-
-def fetch_inputs(folder):
-    folder.mkdir(parents=True, exist_ok=True)
-    commit = get_json('https://api.github.com/repos/RudolfHss/ss-crypto/commits/main')['sha']
-    for name in ['ss_crypto_btc_ohlcv.json', 'ss_crypto_dominance_latest.json']:
-        value = get_json(BASE + commit + '/' + name)
-        (folder / name).write_text(json.dumps(value, indent=2), encoding='utf-8')
-    latest = json.loads((folder / 'ss_crypto_dominance_latest.json').read_text(encoding='utf-8'))
-    end = stamp(latest['source_updated_at'])
-    previous = end.replace(day=1) - dt.timedelta(days=1)
-    for month in sorted({end.strftime('%Y-%m'), previous.strftime('%Y-%m')}):
-        name = 'data/dominance/' + month + '.json'
-        try:
-            value = get_json(BASE + commit + '/' + name)
-        except urllib.error.HTTPError as error:
-            if error.code != 404: raise
-            value = []
-        target = folder / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(value, indent=2), encoding='utf-8')
-    (folder / 'provenance.json').write_text(json.dumps({'commit': commit}), encoding='utf-8')
-
-def ema(values, length):
-    result = [values[0]]
-    for value in values[1:]: result.append(result[-1] + 2 / (length + 1) * (value - result[-1]))
-    return result
-
-def metrics(rows):
-    close = [r['close'] for r in rows]
-    changes = [b - a for a, b in zip(close, close[1:])]
-    gains = sum(max(x, 0) for x in changes[:14]) / 14
-    losses = sum(max(-x, 0) for x in changes[:14]) / 14
-    tr = [max(r['high'] - r['low'], abs(r['high'] - close[i-1]), abs(r['low'] - close[i-1])) for i, r in enumerate(rows) if i]
-    atr = sum(tr[:14]) / 14
-    for x in changes[14:]: gains = (gains * 13 + max(x, 0)) / 14; losses = (losses * 13 + max(-x, 0)) / 14
-    for x in tr[14:]: atr = (atr * 13 + x) / 14
-    rsi = 50 if gains == losses == 0 else (100 if losses == 0 else 100 - 100 / (1 + gains / losses))
-    macd = [a-b for a, b in zip(ema(close, 12), ema(close, 26))]
-    signal = ema(macd, 9)[-1]
-    return {'close': close[-1], 'ema20': ema(close, 20)[-1], 'ema50': ema(close, 50)[-1], 'ema200': ema(close, 200)[-1], 'rsi14': rsi, 'atr14': atr, 'macd': macd[-1], 'macd_signal': signal, 'macd_hist': macd[-1] - signal, 'change_pct': (close[-1] / close[-2] - 1) * 100, 'open_time_utc': rows[-1]['open_time_utc']}
+def unavailable(reason):return {'status':'nem értékelhető','reasons':[reason]}
 
 def validate_sample(sample):
-    if sample.get('schema_version') != 1 or sample.get('source') != 'CoinGecko /global': raise ValueError('Unknown dominance source or schema')
-    stamp(sample['source_updated_at']); stamp(sample['observed_at'])
-    v = sample['values']
-    if set(v) != set(KEYS) or any(not isinstance(v[k], (int, float)) or isinstance(v[k], bool) or not math.isfinite(v[k]) or v[k] <= 0 for k in KEYS): raise ValueError('Missing or invalid dominance metrics')
-    if any(v[k] >= 100 for k in KEYS[:4]) or sum(v[k] for k in KEYS[:4]) > 100: raise ValueError('Invalid dominance percentages')
-    for k, expected in [('TOTAL2', v['TOTAL'] * (1-v['BTC.D']/100)), ('TOTAL3', v['TOTAL'] * (1-(v['BTC.D']+v['ETH.D'])/100))]:
-        if not math.isclose(v[k], expected, rel_tol=1e-9): raise ValueError('Inconsistent ' + k)
+    if sample.get('schema_version')!=1 or sample.get('source')!='CoinGecko /global':raise ValueError('Invalid dominance schema/source')
+    source=timestamp(sample['source_updated_at']);observed=timestamp(sample['observed_at'])
+    if source>observed+dt.timedelta(minutes=5):raise ValueError('Dominance source timestamp exceeds observation')
+    v=sample['values']
+    if set(v)!=set(KEYS) or any(not finite(v[k]) or v[k]<=0 for k in KEYS):raise ValueError('Missing/invalid dominance value')
+    if any(v[k]>=100 for k in KEYS[:4]) or sum(v[k] for k in KEYS[:4])>100:raise ValueError('Invalid dominance percentages')
+    for key,want in [('TOTAL2',v['TOTAL']*(1-v['BTC.D']/100)),('TOTAL3',v['TOTAL']*(1-(v['BTC.D']+v['ETH.D'])/100))]:
+        if not math.isclose(v[key],want,rel_tol=1e-9):raise ValueError('Inconsistent '+key)
 
-def compare(latest, history, hours):
-    target = stamp(latest['source_updated_at']) - dt.timedelta(hours=hours)
-    candidates = [r for r in history if stamp(r['source_updated_at']) < stamp(latest['source_updated_at']) and abs((stamp(r['source_updated_at']) - target).total_seconds()) <= 5400]
-    if not candidates: return None
-    before = min(candidates, key=lambda r: abs((stamp(r['source_updated_at']) - target).total_seconds()))
-    return {'baseline_at': before['source_updated_at'], 'interval_hours': (stamp(latest['source_updated_at']) - stamp(before['source_updated_at'])).total_seconds()/3600, 'changes': {k: latest['values'][k] - before['values'][k] if k.endswith('.D') else (latest['values'][k]/before['values'][k]-1)*100 for k in KEYS}}
+def compare(latest,history,hours=24):
+    end=timestamp(latest['source_updated_at']);target=end-dt.timedelta(hours=hours)
+    candidates=[r for r in history if timestamp(r['source_updated_at'])<end and abs((timestamp(r['source_updated_at'])-target).total_seconds())<=5400]
+    if not candidates:return None
+    before=min(candidates,key=lambda r:abs((timestamp(r['source_updated_at'])-target).total_seconds()))
+    return {'baseline_at':before['source_updated_at'],'interval_hours':(end-timestamp(before['source_updated_at'])).total_seconds()/3600,'changes':{k:latest['values'][k]-before['values'][k] if k.endswith('.D') else (latest['values'][k]/before['values'][k]-1)*100 for k in KEYS}}
 
-def build_model(folder, now=None):
-    now = now or dt.datetime.now(UTC)
-    btc = json.loads((folder / 'ss_crypto_btc_ohlcv.json').read_text(encoding='utf-8-sig'))
-    latest = json.loads((folder / 'ss_crypto_dominance_latest.json').read_text(encoding='utf-8-sig'))
-    validate_sample(latest)
-    history = []
-    for path in sorted((folder / 'data/dominance').glob('*.json')):
-        rows = json.loads(path.read_text(encoding='utf-8-sig'))
-        if not isinstance(rows, list): raise ValueError('Invalid history')
-        for row in rows: validate_sample(row)
-        history.extend(rows)
-    if not any(r == latest for r in history): raise ValueError('Latest dominance sample missing from history')
-    if btc.get('status') != 'ok' or btc.get('market') != 'BTC/USDT': raise ValueError('Invalid BTC dataset')
-    age_btc = (now - stamp(btc['retrieved_at_utc'])).total_seconds()/60
-    age_dom = (now - stamp(latest['source_updated_at'])).total_seconds()/60
-    if min(age_btc, age_dom) < -5: raise ValueError('Future dataset')
-    warnings = []
-    if age_btc > 120: warnings.append('A BTC-adatfelvétel több mint 2 órás; az árfolyamadat nem élő.')
-    if age_dom > 120: warnings.append('A dominanciaforrás több mint 2 órás; friss piaci következtetéshez új adat kell.')
-    result = {}
-    for tf, seconds in TF.items():
-        rows = btc['timeframes'][tf]
-        if len(rows) < 200: raise ValueError('Insufficient candles: ' + tf)
-        previous = None
+def analyse_dominance(folder,now):
+    latest=read(folder/'ss_crypto_dominance_latest.json');validate_sample(latest)
+    status,age=age_status(timestamp(latest['source_updated_at']),now,7200)
+    observation_status,observation_age=age_status(timestamp(latest['observed_at']),now,7200)
+    history=[];seen={}
+    for path in sorted((folder/'data/dominance').glob('*.json')):
+        rows=read(path)
+        if not isinstance(rows,list):raise ValueError('Invalid dominance history')
         for row in rows:
-            start = stamp(row['open_time_utc'])
-            if start + dt.timedelta(seconds=seconds) > stamp(btc['retrieved_at_utc']): raise ValueError('Open candle in ' + tf)
-            if previous and (start - previous).total_seconds() != seconds: raise ValueError('Candle gap in ' + tf)
-            previous = start
-            if any(not isinstance(row[k], (int, float)) or not math.isfinite(row[k]) for k in ['open','high','low','close','volume_base']): raise ValueError('Invalid OHLCV')
-            if not 0 < row['low'] <= min(row['open'],row['close']) <= max(row['open'],row['close']) <= row['high'] or row['volume_base'] < 0: raise ValueError('Invalid OHLCV range')
-        result[tf] = metrics(rows)
-        result[tf]['close_time_utc'] = (stamp(rows[-1]['open_time_utc']) + dt.timedelta(seconds=seconds)).isoformat()
-        if (stamp(btc['retrieved_at_utc']) - stamp(result[tf]['close_time_utc'])).total_seconds() > seconds: warnings.append('Hiányzó friss lezárt gyertya: ' + tf)
-    changes = compare(latest, history, 24)
-    if changes is None: warnings.append('Még nincs összehasonlítható 24 órás dominanciaelőzmény; változás és trend nem állapítható meg.')
-    daily = btc['timeframes']['1D']
-    provenance = folder / 'provenance.json'
-    return {'generated_at_utc': now.isoformat(), 'report_date': now.astimezone(ZoneInfo('Europe/Budapest')).date().isoformat(), 'btc': {'exchange': btc['exchange'], 'retrieved_at_utc': btc['retrieved_at_utc'], 'age_minutes': age_btc, 'metrics': result, 'seven_day_low': min(r['low'] for r in daily[-7:]), 'seven_day_high': max(r['high'] for r in daily[-7:])}, 'dominance': latest, 'dominance_age_minutes': age_dom, 'history_count': len(history), 'change_24h': changes, 'warnings': warnings, 'provenance': json.loads(provenance.read_text(encoding='utf-8')) if provenance.exists() else {}}
+            validate_sample(row)
+            key=row['source_updated_at']
+            if key in seen and seen[key]!=row:raise ValueError('Conflicting duplicate dominance sample')
+            seen[key]=row
+    for row in seen.values():
+        if timestamp(row['source_updated_at'])<=now and timestamp(row['observed_at'])<=now:history.append(row)
+    if not any(r==latest for r in history):raise ValueError('Latest not present in point-in-time dominance history')
+    status=max([status,observation_status],key=QUALITY.get)
+    return {'status':status,'reasons':[] if status=='friss' else ['Elavult dominanciaforrás vagy lekérés.'],'sample':latest,'source_age_seconds':age,'observation_age_seconds':observation_age,'history_count':len(history),'change_24h':compare(latest,history)}
 
-def fmt(value, digits=2): return f'{value:,.{digits}f}'.replace(',', ' ')
-def local(value): return stamp(value).astimezone(ZoneInfo('Europe/Budapest')).strftime('%Y.%m.%d. %H:%M:%S')
+def analyse_context(folder,now):
+    sample=read(folder/'ss_crypto_context.json')
+    if sample.get('schema_version')!=1 or sample.get('source')!='CoinGecko /coins/markets' or sample.get('universe_version')!=UNIVERSE_VERSION or sample.get('universe')!=UNIVERSE:raise ValueError('Invalid context schema/universe')
+    observation_status,_=age_status(timestamp(sample['observed_at']),now,7200)
+    parts={}
+    for key in ['stablecoin_caps','eth_btc','breadth']:
+        try:
+            c=sample['components'][key]
+            if c.get('status')!='available':raise ValueError(c.get('reason','Missing component'))
+            source_times=[]
+            if key=='stablecoin_caps':
+                for symbol in ['USDT','USDC']:
+                    value=c['values'][symbol]
+                    if not finite(value['usd']) or value['usd']<=0:raise ValueError('Invalid absolute stablecoin cap')
+                    source_times.append(timestamp(value['source_updated_at']))
+            elif key=='eth_btc':
+                if not finite(c['ratio']) or c['ratio']<=0 or not finite(c['relative_change_24h_pct']):raise ValueError('Invalid ETH/BTC cross-rate')
+                source_times.append(timestamp(c['source_updated_at']))
+            else:
+                obs=c['observations']
+                if len(obs)!=len(UNIVERSE) or sorted(r['id'] for r in obs)!=sorted(UNIVERSE):raise ValueError('Incomplete fixed universe')
+                if any(not finite(r['return_24h_pct']) for r in obs):raise ValueError('Invalid breadth return')
+                count=sum(r['return_24h_pct']>0 for r in obs)
+                if c['denominator']!=12 or c['coverage']!=12 or c['advancing']!=count or not math.isclose(c['positive_pct'],count/12*100):raise ValueError('Inconsistent participation calculation')
+                source_times.extend(timestamp(r['source_updated_at']) for r in obs)
+                if (max(source_times)-min(source_times)).total_seconds()>600:raise ValueError('Unsynchronised breadth rows')
+            statuses=[age_status(t,now,7200)[0] for t in source_times]+[observation_status]
+            status=max(statuses,key=QUALITY.get)
+            parts[key]={'status':status,'data':c,'reasons':[] if status=='friss' else ['A kiegészítő forrás nem friss.']}
+        except (ValueError,KeyError,TypeError) as error:parts[key]={'status':'korlátozott','data':None,'reasons':[str(error)]}
+    return {'status':max([p['status'] for p in parts.values()],key=QUALITY.get),'observed_at':sample['observed_at'],'universe_version':UNIVERSE_VERSION,'components':parts,'reasons':[]}
 
-def report_sections(m):
-    b, d = m['btc'], m['dominance']
-    daily, four = b['metrics']['1D'], b['metrics']['4H']
-    state = 'felett' if daily['close'] > daily['ema20'] else 'alatt'
-    trend = 'emelkedő' if daily['close'] > daily['ema20'] > daily['ema50'] else ('csökkenő' if daily['close'] < daily['ema20'] < daily['ema50'] else 'vegyes')
-    momentum = 'pozitív' if daily['macd_hist'] > 0 else 'negatív'
-    sections = [
-        ('Áttekintés', [f"A napi záróár {fmt(daily['close'])} USDT; az előző napi záráshoz képest {daily['change_pct']:+.2f}%. Ez lezárt gyertya, nem aktuális spot ár. A napi záróár az EMA20 {state} van; az ár/EMA20/EMA50 sorrend alapján a szerkezet {trend}. A napi MACD-hisztogram {momentum}; RSI(14): {fmt(daily['rsi14'])}.", f"A 4 órás utolsó záróár {fmt(four['close'])} USDT, RSI(14): {fmt(four['rsi14'])}. A két idősík más zárási időpontot jelent; az eltérés nem élő árváltozás."]),
-        ('Figyelt szintek', [f"A hét lezárt napi gyertyájának sávja: {fmt(b['seven_day_low'])} - {fmt(b['seven_day_high'])} USDT. Napi EMA20: {fmt(daily['ema20'])}; EMA50: {fmt(daily['ema50'])}. A napi ATR(14): {fmt(daily['atr14'])} USDT ({fmt(daily['atr14']/daily['close']*100)}% a napi záróárhoz mérve).", 'A hét sávjának teteje fölötti lezárt 4H gyertya és a szint megtartása kitörési feltétel lehet. A sáv alja alatti zárás gyengülést jelezhet; a visszavétel érvénytelenítheti a letörést. A sávon belül nincs igazolt kitörés. Ezek feltételes technikai forgatókönyvek.']),
-        ('Dominancia és piaci szélesség', [f"BTC-részesedés: {fmt(d['values']['BTC.D'])}%; ETH: {fmt(d['values']['ETH.D'])}%. A két stabilcoin együttes részesedése {fmt(d['values']['USDT.D']+d['values']['USDC.D'])}%. Ezek a jelenlegi CoinGecko-mintát írják le; önmagukban nem bizonyítanak tőkebeáramlást vagy altcoinrotációt.", 'A dominancia változása százalékpontban, a kapitalizáció változása százalékban szerepel. A 24 órás referencia legfeljebb 90 perccel térhet el a célidőtől; a tényleges időközt is feltüntetjük.' if m['change_24h'] else 'A gyűjtés indulása óta csak egy minta áll rendelkezésre, ezért nincs hiteles 24 órás változás, dominanciatrend vagy rotációs jelzés.' if m['history_count']==1 else 'Nincs megfelelő, körülbelül 24 órával korábbi minta; változást és rotációs jelzést nem számolunk.']),
-        ('Módszertan és források', ['BTC: a tároló ellenőrzött BTC/USDT spot adatai, idősíkonként 200 lezárt gyertya. EMA: első záróárból indított simítás; az EMA200 a 200 mintás kezdőértékre érzékeny becslés. RSI és ATR: 14 periódusos Wilder-simítás. MACD: 12/26/9. A napi és heti gyertyahatárok UTC szerintiek.', 'CoinGecko /global: BTC.D, ETH.D, USDT.D, USDC.D százalékos részesedés; TOTAL USD-ben. TOTAL2 = TOTAL × (1 - BTC.D/100); TOTAL3 = TOTAL × (1 - (BTC.D + ETH.D)/100). A CoinGecko teljes lefedettségéből számolt pillanatképek, nem közvetlen TradingView CRYPTOCAP-gyertyák, és nem azonos indexek.', 'A források időpontja különböző. A jelentés nem közös időpontra szinkronizált kereskedési jelzés. Az óránkénti ütemezés késhet; hiányzó mintát nem interpolálunk. A teszt ellenőrzi az adatokat és a jelentéskészítést, jövőbeli hozamot nem tesztel.'])
-    ]
-    return sections
+def build_model(folder,now=None,previous=None,test_report=False):
+    folder=Path(folder);now=now or dt.datetime.now(UTC)
+    try:btc=analyse_btc(read(folder/'ss_crypto_btc_ohlcv.json'),now)
+    except (ValueError,KeyError,TypeError,OSError) as error:btc=unavailable(str(error))
+    try:dominance=analyse_dominance(folder,now)
+    except (ValueError,KeyError,TypeError,OSError) as error:dominance=unavailable(str(error))
+    try:context=analyse_context(folder,now)
+    except (ValueError,KeyError,TypeError,OSError) as error:context={'status':'korlátozott','reasons':[str(error)],'components':{}}
+    state=max([btc['status'],dominance['status'],context['status']],key=QUALITY.get)
+    reasons=[]
+    for name,component in [('BTC',btc),('Dominancia',dominance),('Kiegészítő környezet',context)]:
+        reasons.extend(name+': '+r for r in component.get('reasons',[]))
+        for tf,item in component.get('timeframes',{}).items():reasons.extend(tf+': '+r for r in item.get('reasons',[]))
+        for name2,item in component.get('components',{}).items():reasons.extend(name2+': '+r for r in item.get('reasons',[]))
+    if dominance.get('sample') and dominance.get('change_24h') is None:reasons.append('Nincs összehasonlítható 24 órás dominanciaminta; dominanciatrendet nem állítunk.')
+    prior=None
+    if previous:
+        try:
+            candidate=read(previous) if isinstance(previous,(str,Path)) else previous
+            if candidate.get('schema_version')==2 and timestamp(candidate['generated_at_utc'])<now:prior=candidate
+            else:reasons.append('A korábbi jelentés nem összehasonlítható vagy későbbi időpontú.')
+        except (ValueError,KeyError,TypeError,OSError):reasons.append('A korábbi jelentés nem olvasható; változás nincs kiszámítva.')
+    changes={'available':False,'reason':'Nincs korábbi, összehasonlítható jelentés.','level_changes':None}
+    switched=bool(read(folder/'ss_crypto_btc_ohlcv.json').get('source_changed')) if btc.get('exchange') else False
+    if prior and btc.get('levels') and prior.get('btc',{}).get('levels'):
+        switched=switched or prior['btc'].get('exchange')!=btc.get('exchange')
+        if not switched:
+            changes={'available':True,'baseline_at':prior['generated_at_utc'],'level_changes':{k:v-prior['btc']['levels'][k] for k,v in btc['levels'].items()},'reason':'Azonos tőzsde, az előző jelentéshez mért USDT-szintváltozás. Volumeneket nem vonunk össze.'}
+        else:changes['reason']='Forrásváltás: a korábbi tőzsde árszintje és volumene nem közvetlenül összehasonlítható.'
+    if switched:reasons.append('Forrásváltás történt; korábbi tőzsdei volumenhez nincs összehasonlítás.')
+    allowed=state=='friss'
+    scenarios=[]
+    if btc.get('scenario_range'):
+        r=btc['scenario_range'];lo,hi=r['lower'],r['upper'];a,b=r['last_two_closes']
+        rvol=btc['timeframes']['4H']['indicators']['rvol20']
+        for name,condition,invalid,met in [
+            ('Emelkedő',f'Két egymást követő lezárt 4H zárás {fmt(hi)} USDT felett és a második gyertyán RVOL20 legalább 1,20.',f'Következő lezárt 4H zárás {fmt(hi)} USDT alatt.',a>hi and b>hi and rvol is not None and rvol>=1.2),
+            ('Eső',f'Két egymást követő lezárt 4H zárás {fmt(lo)} USDT alatt és a második gyertyán RVOL20 legalább 1,20.',f'Következő lezárt 4H zárás {fmt(lo)} USDT felett.',a<lo and b<lo and rvol is not None and rvol>=1.2),
+            ('Oldalazó',f'Az utolsó két lezárt 4H zárás a {fmt(lo)} - {fmt(hi)} USDT sávban és RVOL20 1,20 alatt.',f'Lezárt 4H zárás a sávon kívül; az irány megerősítése külön szükséges.',lo<=a<=hi and lo<=b<=hi and rvol is not None and rvol<1.2)]:
+            scenarios.append({'name':name,'confirmation':condition,'invalidation':invalid,'condition_observed':bool(met) if allowed else None,'evaluation':'lezárt gyertyás feltétel teljesül' if allowed and met else 'feltétel nem teljesül' if allowed else 'adatkapu miatt nem aktiválható; történeti szintek','trade_signal':False})
+    else:scenarios=[{'name':'Nem értékelhető','confirmation':'Érvényes, friss 4H adatsor szükséges.','invalidation':'Hiányos, hibás vagy elavult adatsor.','condition_observed':None,'evaluation':'nincs értékelhető forgatókönyv','trade_signal':False}]
+    provenance={}
+    try:provenance=read(folder/'provenance.json')
+    except (OSError,ValueError):pass
+    failures=provenance.get('collection_failures',[])
+    if failures:
+        state=max([state,'korlátozott'],key=QUALITY.get)
+        allowed=False
+        reasons.extend('A mostani gyűjtés sikertelen: '+name+'; az esetleg megmaradt adat történeti.' for name in failures)
+        for s in scenarios:
+            s['condition_observed']=None;s['evaluation']='adatkapu miatt nem aktiválható; történeti szintek'
+    model={'schema_version':2,'generated_at_utc':now.isoformat(),'report_date':now.astimezone(ZoneInfo('Europe/Budapest')).date().isoformat(),'test_report':test_report,'data_status':state,'historical_summary_only':not allowed,'current_analysis_allowed':allowed,'new_trade_signal':False,'reasons':reasons,'btc':btc,'dominance':dominance,'context':context,'source_changed':switched,'previous_report_comparison':changes,'scenarios':scenarios,'provenance':provenance}
+    model['document']=document(model)
+    model['content_sha256']=hashlib.sha256(json.dumps(model['document'],ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+    return model
 
-def make_pdf(m, output):
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+def fmt(value,digits=2):return 'nem elérhető' if value is None else f'{value:,.{digits}f}'.replace(',',' ')
+def local(value):return timestamp(value).astimezone(ZoneInfo('Europe/Budapest')).strftime('%Y.%m.%d. %H:%M:%S')
+
+def document(m):
+    blocks=[]
+    def head(s):blocks.append({'type':'heading','text':s})
+    def p(s,keep=False):blocks.append({'type':'paragraph','text':s,'keep_with_next':keep})
+    def table(rows,widths=None):blocks.append({'type':'table','rows':rows,'widths':widths})
+    head('1. Adatállapot')
+    p('Állapot: '+m['data_status'].upper()+'. '+('Történeti összefoglaló; aktuális piaci ajánlás és új trade jelzés nem keletkezik.' if m['historical_summary_only'] else 'Friss, lezárt gyertyás napi értékelés; ez nem élő scalp/daytrade szolgáltatás.'))
+    p('Készült: '+local(m['generated_at_utc'])+' (Europe/Budapest).'+(' TESZTFUTTATÁS.' if m['test_report'] else ''))
+    table([['Adatmodul','Állapot'],['BTC/USDT',m['btc']['status']],['CoinGecko dominancia',m['dominance']['status']],['Kiegészítő BTC/alt környezet',m['context']['status']]],[300,215])
+    for reason in m['reasons']:p(reason)
+    b=m['btc'];frames=b.get('timeframes',{})
+    if b.get('retrieved_at_utc'):p('BTC-lekérés: '+local(b['retrieved_at_utc'])+' Budapest; tőzsde: '+b['exchange']+'.')
+    for tf in ['1W','1D','4H']:
+        item=frames.get(tf,{})
+        p(tf+': utolsó lezárt gyertya '+(local(item['last_close_utc']) if item.get('last_close_utc') else 'nem értékelhető')+'; elvárt zárás '+(local(item['expected_close_utc']) if item.get('expected_close_utc') else 'nem értékelhető')+' Budapest. Állapot: '+item.get('status','nem értékelhető')+'.')
+    head('2. Heti háttér, napos trend, 4H megerősítés')
+    for tf,label in [('1W','Heti háttér'),('1D','Napos trend'),('4H','4H megerősítés')]:
+        item=frames.get(tf,{});v=item.get('indicators')
+        if not v:p(label+': az adatsor nem értékelhető.');continue
+        p(f"{label}: csúcs-mélypont szerkezet {v['structure']['state']}; külön EMA-sorrend: {v['ema_order']}. Utolsó záróár {fmt(v['close'])} USDT; előző gyertyához képest {v['change_pct']:+.2f}%. RSI14 {fmt(v['rsi14'])}, MACD-hisztogram {fmt(v['macd_hist'])}; RVOL20 {fmt(v['rvol20'])}.")
+        if v['ema200'] is None:p(f"{tf} EMA200 nem közölt: {item['count']} gyertya áll rendelkezésre a kért 1000-es bemelegítés helyett. Nem használjuk trendbizonyítékként.")
+    valid=[tf for tf in ['1W','1D','4H'] if frames.get(tf,{}).get('indicators')]
+    if valid:
+        table([['Mutató']+valid]+[[label]+[fmt(frames[tf]['indicators'][key]) for tf in valid] for label,key in [('Záróár (USDT)','close'),('EMA20','ema20'),('EMA50','ema50'),('EMA200 (1000+ minta)','ema200'),('RSI14','rsi14'),('MACD-hisztogram','macd_hist'),('ATR14 (USDT)','atr14'),('RVOL20','rvol20')]])
+        states=[frames[tf]['indicators']['structure']['state'] for tf in valid]
+        p('Idősíkok viszonya: '+('a megerősített szerkezet besorolása egyezik.' if len(set(states))==1 else 'eltérő vagy vegyes szerkezet; nincs egységes trendmegerősítés.'))
+        for tf in valid:
+            s=frames[tf]['indicators']['structure']
+            for kind,label in [('highs','csúcs'),('lows','mélypont')]:
+                if s[kind]:p(tf+' utolsó megerősített '+label+': '+fmt(s[kind][-1]['price'])+' USDT; csak '+local(s[kind][-1]['confirmed_at'])+' Budapest után volt ismert.')
+    head('3. Kulcsszintek és változás az előző jelentéshez')
+    changes=m['previous_report_comparison'];p(changes['reason'])
+    if changes.get('baseline_at'):p('Referenciajelentés: '+local(changes['baseline_at'])+' Budapest.')
+    labels={'seven_day_low':'7 lezárt napi gyertya minimuma','seven_day_high':'7 lezárt napi gyertya maximuma','ema20':'Napi EMA20','ema50':'Napi EMA50'}
+    rows=[['Szint','USDT','Változás (USDT)']]
+    for key,value in b.get('levels',{}).items():rows.append([labels[key],fmt(value),fmt(changes['level_changes'][key]) if changes.get('available') else 'nem összehasonlítható'])
+    if len(rows)>1:table(rows,[250,125,140])
+    head('4. BTC- és altcoin-környezet')
+    d=m['dominance']
+    if d.get('sample'):
+        sample=d['sample'];p('CoinGecko forrásidő: '+local(sample['source_updated_at'])+'; lekérés: '+local(sample['observed_at'])+' Budapest. A hét mutató részben algebrailag összefügg, nem hét független jel.')
+        rows=[['Mutató','Érték','Kb. 24h változás']]
+        for key in KEYS:
+            unit=' %' if key.endswith('.D') else ' USD'
+            delta='nincs referencia' if d['change_24h'] is None else fmt(d['change_24h']['changes'][key],3)+(' százalékpont' if key.endswith('.D') else ' %')
+            rows.append([key,fmt(sample['values'][key])+unit,delta])
+        table(rows,[75,240,200])
+        if d.get('change_24h'):p('24h referencia: '+local(d['change_24h']['baseline_at'])+' Budapest; tényleges időköz '+fmt(d['change_24h']['interval_hours'])+' óra.')
+    else:p('A dominanciaadat nem értékelhető; nem közlünk helyettesítő számokat.')
+    components=m['context'].get('components',{})
+    for key,title in [('eth_btc','ETH/BTC relatív erő'),('stablecoin_caps','Stabilcoinok abszolút kapitalizációja'),('breadth','Rögzített altcoin-univerzum részvétele')]:
+        c=components.get(key,{});v=c.get('data')
+        if not v or c.get('status')!='friss':p(title+': hiányzó vagy nem friss adat; aktuális következtetés nem készül.');continue
+        if key=='eth_btc':p(title+': '+fmt(v['ratio'],6)+' BTC/ETH; gördülő 24h relatív változás '+fmt(v['relative_change_24h_pct'],3)+'%. USD-jegyzésekből származtatott keresztárfolyam, nem tőzsdei ETH/BTC-gyertya.')
+        elif key=='stablecoin_caps':
+            for symbol,item in v['values'].items():p(symbol+': '+fmt(item['usd'])+' USD; forrásidő '+local(item['source_updated_at'])+' Budapest. A kapitalizáció önmagában nem bizonyít tőkeáramlást.')
+        else:p(title+f": {v['advancing']}/{v['denominator']} pozitív gördülő 24h USD-hozam, {fmt(v['positive_pct'])}%; teljes lefedettség {v['coverage']}/12. Univerzum: "+', '.join(UNIVERSE)+'. A sorozat 2026.10.15-től épül; nincs visszamenőleg kitalált univerzum.')
+    head('5. Feltételes forgatókönyvek')
+    p('Nincs vételi/eladási megbízás vagy új trade jelzés. Az adatkapu '+('enged lezárt gyertyás feltételértékelést.' if m['current_analysis_allowed'] else 'tiltja az aktuális aktiválást; a következő szintek történeti megfigyelési keretek.'))
+    for s in m['scenarios']:
+        p(s['name']+' - '+s['evaluation']+'.',True)
+        p('Megerősítés: '+s['confirmation'],True);p('Érvénytelenítés: '+s['invalidation'])
+    head('6. Módszertan, korlátok és elérhetőség')
+    for text in [
+        'UTC gyertyahatárok: nap 00:00, hét hétfő 00:00. Az elvárt utolsó zárást az értékelés ideje előtt 5 perccel számoljuk, hogy legyen szolgáltatói lezárási türelem. Napi/heti zárást nem várunk a periódus befejezése előtt.',
+        'BTC-lekérés: 90 percig friss, 90 perc és 24 óra között korlátozott, 24 óra felett nem értékelhető. CoinGecko forrás és lekérés: 120 percig friss; 24 óráig korlátozott; utána nem értékelhető. Hibás/hiányos alapadat nem értékelhető, hiányzó kiegészítő modul korlátozott. 5 percnél távolabbi jövőbeli időbélyeg hibás.',
+        'Szerkezet: szigorú két bal/két jobb gyertyás csúcsok és mélypontok. A pivot csak a két jobb gyertya zárása után ismert. Az utolsó két megerősített csúcs és mélypont együttes HH/HL vagy LH/LL viszonya ad besorolást. Az EMA-sorrend külön trendleíró, nem piaci szerkezet.',
+        'EMA: első rendelkezésre álló záróárral inicializálva; EMA200 csak legalább 1000 lezárt gyertyából. Az induló érték súlya ekkor legfeljebb (199/201)^999, körülbelül 0,0046%. Rövidebb heti tőzsdei történetnél EMA200 nincs közölve. RSI14 és ATR14 Wilder-simítás, MACD 12/26/9. Az összefüggő indikátorokat nem pontozzuk független bizonyítékként.',
+        'RVOL20: az utolsó gyertya BTC-alapvolumene osztva a megelőző húsz lezárt gyertya átlagával, azonos tőzsdén és idősíkon. Megerősítési küszöb 1,20; ez szabály, nem bizonyított hozamelőny. Forrásváltáskor tőzsdék volumene nem keverhető.',
+        'CoinGecko TOTAL2 = TOTAL × (1 - BTC.D/100); TOTAL3 = TOTAL × (1 - (BTC.D + ETH.D)/100). Ezek CoinGecko-pillanatképek, nem TradingView CRYPTOCAP-gyertyák vagy azonos indexek. A dominancia önmagában nem tőkeáramlás. Részvétel: a rögzített 12 érme pozitív gördülő 24h USD-hozamának egyenlő darabszámú aránya, nem TOTAL3 és nem teljes altcoinpiaci lefedettség.',
+        'A 07:30 Europe/Budapest reggeli időpont következetes napi értékelési idő, nem konkrét tőzsdenyitásra optimalizált. GitHub Actions késhet. A 4H/1D/1W spotadat nem élő scalp/daytrade/perpetual adatfolyam. Ilyen szolgáltatás nincs bekapcsolva.',
+        'Források: Coinbase Exchange /products/BTC-USDT/candles; OKX /api/v5/market/history-candles UTC barokkal; Bybit /v5/market/kline spot; CoinGecko /api/v3/global és /api/v3/coins/markets. A tényleges tőzsde és az adatok időpontja fent szerepel.',
+        'Tájékoztató technikai értékelés; nem személyre szabott befektetési tanács.'
+    ]:p(text)
+    if m['provenance']:p('Adateredet: '+json.dumps(m['provenance'],ensure_ascii=False,sort_keys=True))
+    return blocks
+
+def make_pdf(model,path):
+    from reportlab.platypus import SimpleDocTemplate,Paragraph,Table,TableStyle,KeepTogether,Spacer
+    from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.lib import colors
     from xml.sax.saxutils import escape
-    fonts = [(Path('C:/Windows/Fonts/arial.ttf'),Path('C:/Windows/Fonts/arialbd.ttf')), (Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),Path('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))]
-    normal, bold = next(pair for pair in fonts if all(p.exists() for p in pair))
-    pdfmetrics.registerFont(TTFont('Report',str(normal))); pdfmetrics.registerFont(TTFont('ReportBold',str(bold)))
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='ReportTitle',fontName='ReportBold',fontSize=23,leading=28,textColor=colors.HexColor('#123149'),spaceAfter=10))
-    styles.add(ParagraphStyle(name='ReportHead',fontName='ReportBold',fontSize=12,leading=16,textColor=colors.HexColor('#137b80'),spaceBefore=12,spaceAfter=7))
-    styles.add(ParagraphStyle(name='ReportBody',fontName='Report',fontSize=9.5,leading=13.5,spaceAfter=7))
-    styles.add(ParagraphStyle(name='ReportSmall',fontName='Report',fontSize=8,leading=11,spaceAfter=5))
-    story=[]
-    def p(text,style='ReportBody'): story.append(Paragraph(escape(text),styles[style]))
-    def table(rows,widths):
-        cells=[[Paragraph(escape(str(cell)),styles['ReportSmall']) for cell in row] for row in rows]
-        t=Table(cells,colWidths=widths,repeatRows=1,hAlign='LEFT');t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#e5f1f2')),('VALIGN',(0,0),(-1,-1),'TOP'),('LINEBELOW',(0,0),(-1,-1),.4,colors.HexColor('#ccd9df')),('TOPPADDING',(0,0),(-1,-1),7),('BOTTOMPADDING',(0,0),(-1,-1),7)]));story.append(t)
-    sections=report_sections(m)
-    p('SS CRYPTO | Napi jelentés','ReportTitle');p(m['report_date']+(' | TESZTFUTTATÁS' if m.get('test_report') else ''),'ReportHead')
-    p('Készült: '+local(m['generated_at_utc'])+' (Europe/Budapest).','ReportSmall')
-    for warning in m['warnings']:p('ADATÁLLAPOT: '+warning,'ReportSmall')
-    p(sections[0][0],'ReportHead')
-    for text in sections[0][1]:p(text)
-    table([['Lezárt gyertyák','4H','1D','1W']]+[[label]+[fmt(m['btc']['metrics'][tf][key]) for tf in TF] for label,key in [('Záróár (USDT)','close'),('Változás az előző záróhoz (%)','change_pct'),('EMA20','ema20'),('EMA50','ema50'),('EMA200 (becslés)','ema200'),('RSI(14)','rsi14'),('MACD-hisztogram','macd_hist'),('ATR(14), USDT','atr14')]],[185,110,110,110])
-    p('BTC-forrás: '+m['btc']['exchange']+' | Adatfelvétel: '+local(m['btc']['retrieved_at_utc'])+' Budapest.','ReportSmall')
-    for tf in TF:p(tf+' utolsó gyertya zárási ideje: '+local(m['btc']['metrics'][tf]['close_time_utc'])+' Budapest.','ReportSmall')
-    story.append(PageBreak());p('Dominancia és összpiac','ReportTitle')
-    p('CoinGecko forrásidő: '+local(m['dominance']['source_updated_at'])+' | Gyűjtés: '+local(m['dominance']['observed_at'])+' Budapest.','ReportSmall')
-    rows=[['Mutató','Érték','24 órás változás']]
-    for key in KEYS:
-        value=fmt(m['dominance']['values'][key])+(' %' if key.endswith('.D') else ' USD')
-        change='Nincs referencia' if not m['change_24h'] else f"{m['change_24h']['changes'][key]:+.3f}"+(' százalékpont' if key.endswith('.D') else ' %')
-        rows.append([key,value,change])
-    table(rows,[90,255,170])
-    if m['change_24h']: p('Referencia: '+local(m['change_24h']['baseline_at'])+f" Budapest; tényleges időköz: {m['change_24h']['interval_hours']:.2f} óra.",'ReportSmall')
-    for text in sections[2][1]:p(text)
-    p(sections[1][0],'ReportHead')
-    for text in sections[1][1]:p(text)
-    story.append(PageBreak());p('Adatminőség és ellenőrzés','ReportTitle')
-    table([['Ellenőrzés','Eredmény'],['BTC-adatok', '3 idősík; mindegyiken legalább 200 lezárt, folytonos OHLCV-gyertya.'],['Dominancia','7 pozitív, véges érték; TOTAL2/TOTAL3 képletek egyeznek.'],['Előzmény',f"{m['history_count']} minta; a legutóbbi megegyezik a latest fájllal."],['Frissesség',f"BTC: {m['btc']['age_minutes']:.0f} perc; dominancia: {m['dominance_age_minutes']:.0f} perc a készítéskor."],['24 órás összehasonlítás','Elérhető' if m['change_24h'] else 'Még nem elérhető; nincs kitalált változás.']],[150,365])
-    p(sections[3][0],'ReportHead')
-    for text in sections[3][1]:p(text)
-    ref=m['provenance'].get('commit','main')
-    for label,name in [('BTC-adatok','ss_crypto_btc_ohlcv.json'),('Dominancia','ss_crypto_dominance_latest.json'),('Havi előzmény','data/dominance/'+m['dominance']['source_updated_at'][:7]+'.json')]:
-        url=BASE+ref+'/'+name
-        story.append(Paragraph(f'<link href="{url}" color="#137b80">{label}: GitHub, rögzített forrás</link>',styles['ReportSmall']))
-    url='https://docs.coingecko.com/demo/reference/crypto-global'
-    story.append(Paragraph(f'<link href="{url}" color="#137b80">CoinGecko /global dokumentáció</link>',styles['ReportSmall']))
-    if m['provenance'].get('commit'):p('Forrás-commit: '+ref,'ReportSmall')
-    p('Tájékoztató technikai elemzés; nem személyre szabott befektetési tanács.','ReportSmall')
+    pairs=[('C:/Windows/Fonts/arial.ttf','C:/Windows/Fonts/arialbd.ttf'),('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf')]
+    normal,bold=next(pair for pair in pairs if all(Path(f).exists() for f in pair))
+    pdfmetrics.registerFont(TTFont('Report',normal));pdfmetrics.registerFont(TTFont('ReportBold',bold))
+    styles=getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='RTitle',fontName='ReportBold',fontSize=22,leading=27,textColor=colors.HexColor('#123149'),spaceAfter=11))
+    styles.add(ParagraphStyle(name='RHead',fontName='ReportBold',fontSize=12,leading=16,textColor=colors.HexColor('#14777d'),spaceBefore=12,spaceAfter=7,keepWithNext=True))
+    styles.add(ParagraphStyle(name='RBody',fontName='Report',fontSize=9,leading=13,spaceAfter=7,splitLongWords=True))
+    styles.add(ParagraphStyle(name='RKeep',parent=styles['RBody'],keepWithNext=True))
+    styles.add(ParagraphStyle(name='RCell',fontName='Report',fontSize=8,leading=11,spaceAfter=0))
+    story=[Paragraph('SS CRYPTO | Napi jelentés',styles['RTitle']),Paragraph(model['report_date']+(' | AUDIT TESZT' if model['test_report'] else ''),styles['RHead'])]
+    for block in model['document']:
+        if block['type']=='heading':story.append(Paragraph(escape(block['text']),styles['RHead']))
+        elif block['type']=='paragraph':story.append(Paragraph(escape(block['text']),styles['RKeep'] if block.get('keep_with_next') else styles['RBody']))
+        else:
+            rows=[[Paragraph(escape(str(c)),styles['RCell']) for c in row] for row in block['rows']]
+            widths=block.get('widths') or [515/len(rows[0])]*len(rows[0])
+            t=Table(rows,colWidths=widths,repeatRows=1,hAlign='LEFT')
+            t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#e6f1f2')),('VALIGN',(0,0),(-1,-1),'TOP'),('LINEBELOW',(0,0),(-1,-1),.4,colors.HexColor('#cedde2')),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]));story+=[t,Spacer(1,6)]
+    story.append(Paragraph('Tartalomazonosító: '+model['content_sha256'],styles['RCell']))
     def footer(canvas,doc):
-        canvas.setFont('Report',8);canvas.setFillColor(colors.HexColor('#607889'));canvas.drawString(40,24,'SS CRYPTO | '+m['report_date']+' | Napi jelentés'+(' teszt' if m.get('test_report') else ''));canvas.drawRightString(555,24,str(doc.page))
-    SimpleDocTemplate(str(output),pagesize=(595.28,841.89),leftMargin=40,rightMargin=40,topMargin=35,bottomMargin=42,title='SS CRYPTO napi jelentés - '+m['report_date'],author='SS CRYPTO').build(story,onFirstPage=footer,onLaterPages=footer)
+        canvas.setFont('Report',8);canvas.setFillColor(colors.HexColor('#5b7485'));canvas.drawString(40,24,'SS CRYPTO | '+model['report_date']+' | '+model['data_status']);canvas.drawRightString(555,24,str(doc.page))
+    SimpleDocTemplate(str(path),pagesize=(595.28,841.89),leftMargin=40,rightMargin=40,topMargin=35,bottomMargin=42,title='SS CRYPTO napi jelentés '+model['report_date'],author='SS CRYPTO').build(story,onFirstPage=footer,onLaterPages=footer)
+
+def export(model,folder,pdf=True):
+    folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
+    name='SS_CRYPTO_napi_jelentes_'+model['report_date']+('_audit_teszt' if model['test_report'] else '')
+    parts=['# SS CRYPTO napi jelentés | '+model['report_date']]
+    for block in model['document']:
+        if block['type']=='heading':parts.append('## '+block['text'])
+        elif block['type']=='paragraph':parts.append(block['text'])
+        else:
+            rows=block['rows'];parts.append('\n'.join(['| '+' | '.join(str(c).replace('|','/') for c in rows[0])+' |','|'+'---|'*len(rows[0])]+['| '+' | '.join(str(c).replace('|','/') for c in row)+' |' for row in rows[1:]]))
+    parts.append('Tartalomazonosító: '+model['content_sha256'])
+    (folder/(name+'.json')).write_text(json.dumps(model,ensure_ascii=False,indent=2),encoding='utf-8')
+    (folder/(name+'.md')).write_text('\n\n'.join(parts)+'\n',encoding='utf-8')
+    if pdf:make_pdf(model,folder/(name+'.pdf'))
+    return folder/(name+'.json')
+
+def verify_outputs(model_path):
+    from pypdf import PdfReader
+    path=Path(model_path);m=read(path)
+    if hashlib.sha256(json.dumps(m['document'],ensure_ascii=False,sort_keys=True).encode()).hexdigest()!=m['content_sha256']:raise AssertionError('JSON document hash differs')
+    md=path.with_suffix('.md').read_text(encoding='utf-8')
+    pdf=PdfReader(path.with_suffix('.pdf'));text=' '.join('\n'.join(p.extract_text() for p in pdf.pages).split())
+    for block in m['document']:
+        values=[str(c) for row in block['rows'] for c in row] if block['type']=='table' else [block['text']]
+        for value in values:
+            if ' '.join(value.split()) not in text:raise AssertionError('PDF missing content: '+value[:80])
+            if value.replace('|','/') not in md and value not in md:raise AssertionError('Markdown missing content: '+value[:80])
+    if m['data_status']!='friss':
+        assert not m['current_analysis_allowed'] and m['historical_summary_only']
+        assert all(s['condition_observed'] is None for s in m['scenarios'])
+    assert m['new_trade_signal'] is False
+    print(json.dumps({'verified':True,'pages':len(pdf.pages),'status':m['data_status'],'content_sha256':m['content_sha256']},ensure_ascii=False))
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--input-dir',type=Path,default=Path('.'));parser.add_argument('--output-dir',type=Path,default=Path('reports'));parser.add_argument('--fetch',action='store_true');parser.add_argument('--pdf',action='store_true');parser.add_argument('--test-report',action='store_true');args=parser.parse_args()
-    if args.fetch:fetch_inputs(args.input_dir)
-    model=build_model(args.input_dir);model['test_report']=args.test_report;args.output_dir.mkdir(parents=True,exist_ok=True)
-    stem='SS_CRYPTO_napi_jelentes_'+model['report_date']+('_teszt' if args.test_report else '')
-    (args.output_dir/(stem+'.json')).write_text(json.dumps(model,ensure_ascii=False,indent=2),encoding='utf-8')
-    parts=['# SS CRYPTO napi jelentés | '+model['report_date'],('TESZTFUTTATÁS. ' if args.test_report else '')+'Készült: '+local(model['generated_at_utc'])+' Budapest.']
-    parts+=['Adatállapot: '+w for w in model['warnings']]
-    for title,texts in report_sections(model):parts+=['## '+title,*texts]
-    table_lines=['| Mutató | Érték | 24h változás |','|---|---:|---:|']
-    for key in KEYS:
-        change='Nincs referencia' if model['change_24h'] is None else fmt(model['change_24h']['changes'][key])+(' százalékpont' if key.endswith('.D') else ' %')
-        table_lines.append('| '+key+' | '+fmt(model['dominance']['values'][key])+(' %' if key.endswith('.D') else ' USD')+' | '+change+' |')
-    parts.append('\n'.join(table_lines))
-    parts+=['BTC adatfelvétel: '+local(model['btc']['retrieved_at_utc']), 'Dominancia forrásidő: '+local(model['dominance']['source_updated_at']), 'Forrás-commit: '+model['provenance'].get('commit','helyi másolat'), '[CoinGecko módszertan](https://docs.coingecko.com/demo/reference/crypto-global)', '[Tároló](https://github.com/RudolfHss/ss-crypto)']
-    (args.output_dir/(stem+'.md')).write_text('\n\n'.join(parts)+'\n',encoding='utf-8')
-    if args.pdf:make_pdf(model,args.output_dir/(stem+'.pdf'))
-    print(json.dumps({'date':model['report_date'],'warnings':model['warnings'],'history_count':model['history_count'],'output':str(args.output_dir)},ensure_ascii=False))
+    p=argparse.ArgumentParser();p.add_argument('--input-dir',type=Path,default=Path('.'));p.add_argument('--output-dir',type=Path,default=Path('reports'));p.add_argument('--previous',type=Path);p.add_argument('--test-report',action='store_true');p.add_argument('--pdf',action='store_true');p.add_argument('--verify',type=Path);a=p.parse_args()
+    if a.verify:verify_outputs(a.verify);return
+    model=build_model(a.input_dir,previous=a.previous,test_report=a.test_report)
+    path=export(model,a.output_dir,a.pdf);print(json.dumps({'model':str(path),'status':model['data_status'],'current_analysis_allowed':model['current_analysis_allowed']},ensure_ascii=False))
 
 if __name__=='__main__':main()

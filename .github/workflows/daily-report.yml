@@ -1,15 +1,26 @@
 name: SS CRYPTO daily report
 on:
   workflow_dispatch:
+    inputs:
+      test_report:
+        description: 'Tesztjelentés (nem írja felül a rendes napi jelentést)'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '30 5 * * *'
+    - cron: '30 6 * * *'
   push:
     branches: [main]
-    paths:
-      - ss_crypto_daily_report.py
-      - .github/workflows/daily-report.yml
+    paths: ['ss_crypto_*.py','ss_crypto_dominance.mjs','test_ss_crypto.py','test_context.mjs','requirements-report.txt','.github/workflows/daily-report.yml']
+  pull_request:
+    paths: ['ss_crypto_*.py','ss_crypto_dominance.mjs','test_ss_crypto.py','test_context.mjs','requirements-report.txt','.github/workflows/*.yml']
 permissions:
   contents: read
+concurrency:
+  group: ss-crypto-daily-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  report-test:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -17,32 +28,73 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install PDF dependencies
-        run: python -m pip install 'reportlab>=4,<5' tzdata pypdf
-      - name: Generate integrated report test
-        run: |
-          python -c "import json,os; from pathlib import Path; Path('provenance.json').write_text(json.dumps({'commit': os.environ['GITHUB_SHA']}))"
-          python ss_crypto_daily_report.py --input-dir . --output-dir reports --pdf --test-report
-      - name: Verify report outputs
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          from pypdf import PdfReader
-          model_path = next(Path('reports').glob('*.json'))
-          model = json.loads(model_path.read_text())
-          assert len(model['dominance']['values']) == 7
-          assert set(model['btc']['metrics']) == {'4H','1D','1W'}
-          reader = PdfReader(next(Path('reports').glob('*.pdf')))
-          assert len(reader.pages) == 3
-          text = '\n'.join(p.extract_text() for p in reader.pages)
-          for term in ['BTC.D','ETH.D','USDT.D','USDC.D','TOTAL2','TOTAL3','CoinGecko','TESZTFUTTATÁS']:
-              assert term in text, term
-          print('Verified: 3 pages, 7 dominance metrics, 3 BTC timeframes')
-          PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: ss-crypto-daily-report-test-${{ github.run_id }}
-          path: reports/*
+          node-version: '22'
+      - run: python -m pip install -r requirements-report.txt
+      - name: Data quality, UTC alignment, point-in-time structure and independent indicator tests
+        run: python -m unittest -v test_ss_crypto.py
+      - name: Dominance, context and history tests
+        run: node --test test_context.mjs tests/dominance.test.mjs
+  report:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install -r requirements-report.txt
+      - name: Budapest daily gate (DST and duplicate protection)
+        id: gate
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = schedule ]; then
+            python ss_crypto_pipeline.py --gate --cron "$SCHEDULE"
+          else
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Fresh collection, quality gate, report and content verification
+        if: steps.gate.outputs.run == 'true'
+        env:
+          COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+          EVENT: ${{ github.event_name }}
+          TEST_REPORT: ${{ inputs.test_report }}
+        run: |
+          if [ "$EVENT" = schedule ] || { [ "$EVENT" = workflow_dispatch ] && [ "$TEST_REPORT" = false ]; }; then
+            python ss_crypto_pipeline.py
+          else
+            python ss_crypto_pipeline.py --test-report
+          fi
+      - name: Publish regular dated reports and latest baseline
+        if: steps.gate.outputs.run == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_report == false)) && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add reports/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Publish audited SS CRYPTO daily report'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.run == 'true'
+        with:
+          name: ss-crypto-daily-${{ github.run_id }}
+          path: |
+            reports/
+            run-data/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90

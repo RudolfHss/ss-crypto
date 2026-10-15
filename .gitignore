@@ -1,0 +1,4 @@
+__pycache__/
+run-data/
+reports/tests/
+*.tmp

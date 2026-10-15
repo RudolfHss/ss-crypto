@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {snapshot,persist} from '../ss_crypto_dominance.mjs';
+const now=new Date('2026-10-15T12:00:00Z');
+const fixture=()=>({data:{total_market_cap:{usd:1000},market_cap_percentage:{btc:60,eth:10,usdt:5,usdc:3},updated_at:now.getTime()/1000}});
+test('seven metrics and exclusions',()=>{const v=snapshot(fixture(),now).values; assert.equal(Object.keys(v).length,7); assert.equal(v['BTC.D'],60); assert.equal(v['ETH.D'],10); assert.equal(v['USDT.D'],5); assert.equal(v['USDC.D'],3); assert.equal(v.TOTAL,1000); assert.equal(v.TOTAL2,400); assert.ok(Math.abs(v.TOTAL3-300)<1e-9);});
+test('invalid, missing, stale and future data fail',()=>{for(const mutate of [p=>delete p.data.market_cap_percentage.usdc,p=>p.data.total_market_cap.usd=NaN,p=>p.data.market_cap_percentage.eth=50,p=>p.data.updated_at-=7201,p=>p.data.updated_at+=301]){const p=fixture();mutate(p);assert.throws(()=>snapshot(p,now));}});
+test('history, deduplication, rollover and corruption',async()=>{const root=await mkdtemp(join(tmpdir(),'ss-dominance-'));try{const a=snapshot(fixture(),now);assert.equal(await persist(a,root),true);assert.equal(await persist(a,root),false);const p=fixture();p.data.updated_at+=3600;await persist(snapshot(p,new Date(now.getTime()+3600000)),root);await assert.rejects(persist(a,root),/regressed/);assert.equal(JSON.parse(await readFile(join(root,'data/dominance/2026-10.json'))).length,2);const b={...a,source_updated_at:'2026-11-01T00:00:00.000Z'};await persist(b,root);assert.equal(JSON.parse(await readFile(join(root,'data/dominance/2026-11.json'))).length,1);await writeFile(join(root,'data/dominance/2026-11.json'),'broken');await assert.rejects(persist(b,root));assert.equal(await readFile(join(root,'data/dominance/2026-11.json'),'utf8'),'broken');}finally{await rm(root,{recursive:true,force:true});}});

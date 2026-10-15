@@ -1,0 +1,52 @@
+name: SS CRYPTO CoinGecko dominance
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - ss_crypto_dominance.mjs
+      - tests/dominance.test.mjs
+      - .github/workflows/dominance-data.yml
+permissions:
+  contents: write
+concurrency:
+  group: coingecko-dominance-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate collector
+        run: node --test tests/dominance.test.mjs
+      - name: Collect CoinGecko snapshot
+        env:
+          COINGECKO_DEMO_API_KEY: ${{ secrets.COINGECKO_DEMO_API_KEY }}
+        run: node ss_crypto_dominance.mjs
+      - name: Commit dominance files only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/dominance/*.json ss_crypto_dominance_latest.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Update CoinGecko dominance snapshot'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then exit 0; fi
+            sleep 5
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coingecko-dominance-${{ github.run_id }}
+          path: |
+            ss_crypto_dominance_latest.json
+            data/dominance/*.json
+          if-no-files-found: error
+          retention-days: 30

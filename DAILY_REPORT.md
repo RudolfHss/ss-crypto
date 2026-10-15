@@ -24,7 +24,7 @@ For the requested test add `--test-report`. The dated outputs then end in `_tesz
 
 ## Verification
 
-`python -m unittest test_daily_report.py` with the `input` snapshot directory. The test fixture report from 2026-10-15 is based on actual recorded data; synthetic data are used only for indicator and comparison unit tests. PDF export is reopened, its text checked and all pages visually inspected before delivery.
+The local fixture-based verification covers real inputs, missing or inconsistent values, percentage versus percentage-point changes and flat-market indicator edge cases. The test report from 2026-10-15 is based on actual recorded data; synthetic data are used only for indicator and comparison unit tests. PDF export is reopened, its text checked and all pages visually inspected before delivery.
 
 This integration is a reusable report generator. It does not change any pre-existing ChatGPT scheduled task or set a new report delivery time.
 

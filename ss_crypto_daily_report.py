@@ -200,10 +200,11 @@ def main():
     parts=['# SS CRYPTO napi jelentés | '+model['report_date'],('TESZTFUTTATÁS. ' if args.test_report else '')+'Készült: '+local(model['generated_at_utc'])+' Budapest.']
     parts+=['Adatállapot: '+w for w in model['warnings']]
     for title,texts in report_sections(model):parts+=['## '+title,*texts]
-    parts+=['| Mutató | Érték | 24h változás |','|---|---:|---:|']
+    table_lines=['| Mutató | Érték | 24h változás |','|---|---:|---:|']
     for key in KEYS:
         change='Nincs referencia' if model['change_24h'] is None else fmt(model['change_24h']['changes'][key])+(' százalékpont' if key.endswith('.D') else ' %')
-        parts.append('| '+key+' | '+fmt(model['dominance']['values'][key])+(' %' if key.endswith('.D') else ' USD')+' | '+change+' |')
+        table_lines.append('| '+key+' | '+fmt(model['dominance']['values'][key])+(' %' if key.endswith('.D') else ' USD')+' | '+change+' |')
+    parts.append('\n'.join(table_lines))
     parts+=['BTC adatfelvétel: '+local(model['btc']['retrieved_at_utc']), 'Dominancia forrásidő: '+local(model['dominance']['source_updated_at']), 'Forrás-commit: '+model['provenance'].get('commit','helyi másolat'), '[CoinGecko módszertan](https://docs.coingecko.com/demo/reference/crypto-global)', '[Tároló](https://github.com/RudolfHss/ss-crypto)']
     (args.output_dir/(stem+'.md')).write_text('\n\n'.join(parts)+'\n',encoding='utf-8')
     if args.pdf:make_pdf(model,args.output_dir/(stem+'.pdf'))

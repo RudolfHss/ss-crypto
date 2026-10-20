@@ -91,26 +91,13 @@ def okx(tf,now=None):
         time.sleep(.12)
     return normalize(rows,tf,now)
 
-def bybit(tf,now=None):
-    now=now or dt.datetime.now(UTC);rows=[];end=int(expected_close(tf,now).timestamp()*1000)-1
-    while len(rows)<COUNTS[tf]:
-        params={'category':'spot','symbol':'BTCUSDT','interval':{'4H':'240','1D':'D','1W':'W'}[tf],'limit':1000,'end':end}
-        payload=get('https://api.bybit.com/v5/market/kline?'+urllib.parse.urlencode(params))
-        if payload.get('retCode')!=0:raise ValueError('Bybit request rejected')
-        page=payload.get('result',{}).get('list',[])
-        if not page:break
-        oldest=min(int(r[0]) for r in page)
-        if oldest>end:raise ValueError('Bybit pagination did not advance')
-        rows.extend(page);end=oldest-1;time.sleep(.12)
-    return normalize(rows,tf,now)
-
 def main():
     path=Path('ss_crypto_btc_ohlcv.json');previous=None
     if path.exists():
         try:previous=json.loads(path.read_text(encoding='utf-8')).get('exchange')
         except (ValueError,OSError):pass
     failures=[];as_of=dt.datetime.now(UTC)
-    for name,fn in [('Coinbase',coinbase),('OKX',okx),('Bybit',bybit)]:
+    for name,fn in [('OKX',okx),('Coinbase',coinbase)]:
         try:
             frames={tf:fn(tf,as_of) for tf in PERIODS}
             result={'schema_version':2,'status':'ok','exchange':name,'previous_exchange':previous,'source_changed':previous is not None and previous!=name,'market':'BTC/USDT','market_type':'spot','retrieved_at_utc':dt.datetime.now(UTC).isoformat(),'collection_as_of_utc':as_of.isoformat(),'timezone':'UTC; daily 00:00; weekly Monday 00:00','requested_counts':COUNTS,'actual_counts':{tf:len(rows) for tf,rows in frames.items()},'ema200_minimum':1000,'timeframes':frames,'failed_sources':failures,'volume_method':'base BTC volume; one exchange only; no cross-exchange volume comparison'}

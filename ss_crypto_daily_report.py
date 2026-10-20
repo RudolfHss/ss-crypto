@@ -215,7 +215,7 @@ def document(m):
         'RVOL20: az utolsó gyertya BTC-alapvolumene osztva a megelőző húsz lezárt gyertya átlagával, azonos tőzsdén és idősíkon. Megerősítési küszöb 1,20; ez szabály, nem bizonyított hozamelőny. Forrásváltáskor tőzsdék volumene nem keverhető.',
         'CoinGecko TOTAL2 = TOTAL × (1 - BTC.D/100); TOTAL3 = TOTAL × (1 - (BTC.D + ETH.D)/100). Ezek CoinGecko-pillanatképek, nem TradingView CRYPTOCAP-gyertyák vagy azonos indexek. A dominancia önmagában nem tőkeáramlás. Részvétel: a rögzített 12 érme pozitív gördülő 24h USD-hozamának egyenlő darabszámú aránya, nem TOTAL3 és nem teljes altcoinpiaci lefedettség.',
         'A 07:30 Europe/Budapest reggeli időpont következetes napi értékelési idő, nem konkrét tőzsdenyitásra optimalizált. GitHub Actions késhet. A 4H/1D/1W spotadat nem élő scalp/daytrade/perpetual adatfolyam. Ilyen szolgáltatás nincs bekapcsolva.',
-        'Források: Coinbase Exchange /products/BTC-USDT/candles; OKX /api/v5/market/history-candles UTC barokkal; Bybit /v5/market/kline spot; CoinGecko /api/v3/global és /api/v3/coins/markets. A tényleges tőzsde és az adatok időpontja fent szerepel.',
+        'Források: OKX /api/v5/market/history-candles UTC barokkal; Coinbase Exchange /products/BTC-USDT/candles; CoinGecko /api/v3/global és /api/v3/coins/markets. A tényleges tőzsde és az adatok időpontja fent szerepel.',
         'Tájékoztató technikai értékelés; nem személyre szabott befektetési tanács.'
     ]:p(text)
     if m['provenance']:p('Adateredet: '+json.dumps(m['provenance'],ensure_ascii=False,sort_keys=True))

@@ -20,7 +20,7 @@ Kézi futtatás: Actions -> SS CRYPTO daily report -> Run workflow. Az alapérte
 
 ## BTC és technikai módszerek
 
-Egy teljes gyűjtés mindhárom idősíkja ugyanarról a tőzsdéről származik. Sorrend: Coinbase, OKX, Bybit. A Coinbase 4H órás, heti napi teljes alkotógyertyákból aggregált. Az OKX történeti végpontja **1Dutc/1Wutc** paramétert használ, paginálva. A Bybit eredményét is az UTC-határokhoz mérjük; eltérő igazítás vagy hiány elutasítja a forrást. Forrásváltás látszik a jelentésben; tőzsdék volumene nem keverhető, az előző jelentés árszintváltozása ilyenkor nincs közvetlenül összehasonlítva.
+Egy teljes gyűjtés mindhárom idősíkja ugyanarról a tőzsdéről származik. Sorrend: OKX, Coinbase. A Bybit gyűjtése megszüntetve; Bybit-adatkészletet az elemzés elutasít. A Coinbase 4H órás, heti napi teljes alkotógyertyákból aggregált. Az OKX történeti végpontja **1Dutc/1Wutc** paramétert használ, paginálva. Mindkét engedélyezett forrásnál eltérő UTC-igazítás vagy hiány elutasítja az adatkészletet. Forrásváltás látszik a jelentésben; tőzsdék volumene nem keverhető, az előző jelentés árszintváltozása ilyenkor nincs közvetlenül összehasonlítva.
 
 Kért előzmény: 1000 lezárt 4H és napos, legfeljebb 600 heti gyertya. Rövidebb heti BTC/USDT-listázási történet esetén legalább 200 teljes, folytonos heti gyertya kell. Az EMA200 **csak legalább 1000 gyertyával** közölt; a heti mutató ezért hiányozhat. A korai hiányzó heti prefix megengedett, a soron belüli vagy friss végi hiány nem.
 

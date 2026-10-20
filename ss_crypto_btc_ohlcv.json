@@ -6,8 +6,8 @@
   "source_changed": false,
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-10-20T01:10:19.376511+00:00",
-  "collection_as_of_utc": "2026-10-20T01:10:06.080694+00:00",
+  "retrieved_at_utc": "2026-10-20T06:25:28.696899+00:00",
+  "collection_as_of_utc": "2026-10-20T06:25:20.684423+00:00",
   "timezone": "UTC; daily 00:00; weekly Monday 00:00",
   "requested_counts": {
     "4H": 1000,
@@ -22,15 +22,6 @@
   "ema200_minimum": 1000,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-05-06T08:00:00+00:00",
-        "open_time_ms": 1778054400000,
-        "open": 81364.9,
-        "high": 82842.0,
-        "low": 81312.6,
-        "close": 82524.6,
-        "volume_base": 1662.36362988
-      },
       {
         "open_time_utc": "2026-05-06T12:00:00+00:00",
         "open_time_ms": 1778068800000,
@@ -9021,6 +9012,15 @@
         "low": 81844.4,
         "close": 81943.8,
         "volume_base": 196.55872039
+      },
+      {
+        "open_time_utc": "2026-10-20T00:00:00+00:00",
+        "open_time_ms": 1792454400000,
+        "open": 81941.9,
+        "high": 82134.0,
+        "low": 81200.0,
+        "close": 82133.1,
+        "volume_base": 688.92618105
       }
     ],
     "1D": [
@@ -22150,11 +22150,6 @@
       }
     ]
   },
-  "failed_sources": [
-    {
-      "exchange": "Coinbase",
-      "reason": "ValueError: Coinbase incomplete 4H bucket 2026-05-08T00:00:00+00:00"
-    }
-  ],
+  "failed_sources": [],
   "volume_method": "base BTC volume; one exchange only; no cross-exchange volume comparison"
 }

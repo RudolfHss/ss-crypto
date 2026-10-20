@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "CoinGecko /coins/markets",
-  "observed_at": "2026-10-20T17:07:14.675Z",
+  "observed_at": "2026-10-20T17:07:56.747Z",
   "universe_version": "fixed-v1-2026-10-15",
   "universe": [
     "ethereum",

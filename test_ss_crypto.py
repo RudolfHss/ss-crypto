@@ -97,6 +97,25 @@ class CandleTests(unittest.TestCase):
             got=collector.okx('1D',NOW)
         self.assertEqual(len(got),1000);self.assertEqual(collector.OKX_BARS['1W'],'1Wutc')
 
+    def test_collector_uses_only_okx_then_coinbase(self):
+        calls=[]
+        def okx_fail(tf,now):
+            calls.append(('OKX',tf));raise ValueError('unavailable')
+        def cb(tf,now):
+            calls.append(('Coinbase',tf));return candles(tf,1000 if tf!='1W' else 230,now)
+        with tempfile.TemporaryDirectory() as folder:
+            import os
+            previous=os.getcwd()
+            try:
+                os.chdir(folder)
+                with patch.object(collector,'okx',side_effect=okx_fail),patch.object(collector,'coinbase',side_effect=cb):
+                    self.assertEqual(collector.main(),0)
+                output=json.loads(Path('ss_crypto_btc_ohlcv.json').read_text())
+            finally:os.chdir(previous)
+        self.assertEqual(calls,[('OKX','4H'),('Coinbase','4H'),('Coinbase','1D'),('Coinbase','1W')])
+        self.assertEqual(output['exchange'],'Coinbase')
+        self.assertEqual(output['failed_sources'][0]['exchange'],'OKX')
+
     def test_collector_old_last_closed_rejected(self):
         rows=candles('1D',1001)[:-1]
         raw=[[r['open_time_ms'],r['open'],r['high'],r['low'],r['close'],r['volume_base']] for r in rows]
@@ -145,6 +164,13 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(m['data_status'],'korlátozott');self.assertFalse(m['current_analysis_allowed']);self.assertTrue(m['historical_summary_only'])
         self.assertTrue(all(s['condition_observed'] is None for s in m['scenarios']))
         self.assertEqual(build_model(self.root,NOW+dt.timedelta(hours=25))['data_status'],'nem értékelhető')
+
+    def test_bybit_dataset_is_rejected_even_when_fresh(self):
+        b=dataset();b['exchange']='Bybit';write_inputs(self.root,btc=b)
+        m=build_model(self.root,NOW)
+        self.assertEqual(m['data_status'],'nem értékelhető')
+        self.assertFalse(m['current_analysis_allowed'])
+        self.assertTrue(m['historical_summary_only'])
 
     def test_missing_latest_candle_despite_fresh_request(self):
         b=dataset();b['timeframes']['4H']=candles(count=1001)[:-1];write_inputs(self.root,btc=b)

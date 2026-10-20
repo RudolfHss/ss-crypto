@@ -2,7 +2,7 @@
 
 BTC/USDT spotadatok, CoinGecko dominancia és auditált napi jelentés. Nincs automatikus kereskedés vagy élő scalp/perpetual jelzés.
 
-- BTC: félóránként; elsődlegesen Coinbase, tartalékként OKX/Bybit. Mindhárom idősík ugyanarról a forrásról. UTC-igazítás, teljes heti folytonosság és lezártság ellenőrzött. A 4H és napos előzmény 1000 gyertya; a heti elérhető listázási történettől függ. Rövid bemelegítésből EMA200 nem jelenik meg.
+- BTC: félóránként; elsődlegesen OKX, tartalékként Coinbase. A Bybit nem engedélyezett gyertyaforrás. Mindhárom idősík ugyanarról a forrásról. UTC-igazítás, teljes heti folytonosság és lezártság ellenőrzött. A 4H és napos előzmény 1000 gyertya; a heti elérhető listázási történettől függ. Rövid bemelegítésből EMA200 nem jelenik meg.
 - CoinGecko: óránként, négy dominancia és TOTAL/TOTAL2/TOTAL3, időbélyegzett havi JSON-előzménnyel. Nem közvetlen TradingView CRYPTOCAP-adat. Valódi API-adatokból külön ETH/BTC-relatív erő, stabilcoin-abszolút kapitalizáció és rögzített 12-token részvétel; hiányos lefedettség látható hiány marad.
 - Napi lánc: **07:30 Europe/Budapest**, téli/nyári időváltással; friss gyűjtés -> minőségkapu -> PDF/Markdown/JSON -> ellenőrzés -> GitHub. Késések lehetségesek.
 

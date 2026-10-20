@@ -84,7 +84,7 @@ def indicators(rows, tf):
     return {'close':close[-1],'change_pct':(close[-1]/close[-2]-1)*100,'ema20':e20,'ema50':e50,'ema200':ema(close,200)[-1] if len(rows)>=EMA200_MINIMUM else None,'ema200_samples':len(rows),'ema200_seed_weight':(199/201)**(len(rows)-1),'ema_order':'ár > EMA20 > EMA50' if close[-1]>e20>e50 else 'ár < EMA20 < EMA50' if close[-1]<e20<e50 else 'vegyes EMA-sorrend','rsi14':50 if gain==loss==0 else 100 if loss==0 else 100-100/(1+gain/loss),'atr14':atr,'macd':macd[-1],'macd_signal':signal,'macd_hist':macd[-1]-signal,'rvol20':rows[-1]['volume_base']/average_volume if average_volume>0 else None,'structure':structure(rows,tf)}
 
 def analyse_btc(dataset, now):
-    if dataset.get('status')!='ok' or dataset.get('market')!='BTC/USDT' or dataset.get('exchange') not in ['Coinbase','OKX','Bybit']: raise ValueError('Invalid BTC dataset')
+    if dataset.get('status')!='ok' or dataset.get('market')!='BTC/USDT' or dataset.get('exchange') not in ['OKX','Coinbase']: raise ValueError('Invalid BTC dataset')
     collected=timestamp(dataset['retrieved_at_utc'])
     status,age=age_status(collected,now,5400)
     result={'status':status,'exchange':dataset['exchange'],'market':'BTC/USDT spot','retrieved_at_utc':collected.isoformat(),'age_seconds':age,'timeframes':{},'reasons':[]}

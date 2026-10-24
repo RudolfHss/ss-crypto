@@ -1,6 +1,6 @@
 # BTC spot order-book liquidity
 
-Public, keyless BTC/USDT snapshots from Bybit spot (200 levels per side) and OKX spot (400). Exchanges remain separate; quantities are BTC and notionals are USDT. No account access or order submission.
+Public, keyless BTC/USDT snapshots from Bitget spot (200 levels per side) and OKX spot (400). Exchanges remain separate; quantities are BTC and notionals are USDT. No account access or order submission. Bitget replaces Bybit because Bybit returned HTTP 403 from the GitHub hosted runner. The active exchange keys are now `bitget` and `okx`; consumers must use these keys rather than expecting `bybit`. Bitget's fixed request explicitly sets `category=SPOT` and `symbol=BTCUSDT`; its response does not echo the symbol.
 
 Run `python btc_spot_liquidity.py`, then `python btc_spot_liquidity.py --check`. Output: `data/btc_spot_liquidity.json`. Consumers must run the check immediately before use: both file and exchange timestamps must be at most 45 minutes old, with at most five seconds future clock tolerance. Receipt checks reject exchange data older than 60 seconds. Live workflow verification uses a stricter 120-second gate. A new file timestamp cannot make an old source fresh.
 
@@ -14,4 +14,4 @@ Workflow: tests + real public API collection + independent freshness check + dow
 
 Tests: `python -m unittest -v test_btc_spot_liquidity.py`.
 
-Sources: [Bybit orderbook](https://bybit-exchange.github.io/docs/v5/market/orderbook), [OKX market data](https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book).
+Sources: [Bitget orderbook](https://www.bitget.com/docs/catalog/market/market-data), [OKX market data](https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book).

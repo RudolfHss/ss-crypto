@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 URLS = {
-    'bybit': 'https://api.bybit.com/v5/market/orderbook?category=spot&symbol=BTCUSDT&limit=200',
+    'bitget': 'https://api.bitget.com/api/v3/market/orderbook?category=SPOT&symbol=BTCUSDT&limit=200',
     'okx': 'https://www.okx.com/api/v5/market/books?instId=BTC-USDT&sz=400',
 }
 MAX_SOURCE_AGE = 60
@@ -28,12 +28,10 @@ def number(value):
 
 
 def normalize(exchange, payload, now_ms):
-    if exchange == 'bybit':
-        if payload.get('retCode') != 0:
-            raise ValueError('Bybit rejected request')
-        book = payload['result']
-        if book['s'] != 'BTCUSDT':
-            raise ValueError('Unexpected symbol')
+    if exchange == 'bitget':
+        if payload.get('code') != '00000':
+            raise ValueError('Bitget rejected request')
+        book = payload['data']
         bids, asks, timestamp = book['b'], book['a'], int(book['ts'])
     elif exchange == 'okx':
         if payload.get('code') != '0' or len(payload.get('data', [])) != 1:

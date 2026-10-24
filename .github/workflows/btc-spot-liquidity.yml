@@ -1,0 +1,64 @@
+name: BTC spot liquidity
+on:
+  pull_request:
+    paths: ['btc_spot_liquidity.py', 'test_btc_spot_liquidity.py', '.github/workflows/btc-spot-liquidity.yml']
+  push:
+    branches: ['feat/btc-spot-orderbook-liquidity']
+    paths: ['btc_spot_liquidity.py', 'test_btc_spot_liquidity.py', '.github/workflows/btc-spot-liquidity.yml']
+  workflow_dispatch:
+  schedule:
+    - cron: '7,37 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: btc-spot-liquidity-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest -v test_btc_spot_liquidity.py
+      - name: Collect public spot books
+        run: python btc_spot_liquidity.py
+      - name: Independently check file and source freshness
+        run: python btc_spot_liquidity.py --check --max-age-seconds 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: btc-spot-liquidity-${{ github.run_id }}
+          path: data/btc_spot_liquidity.json
+          if-no-files-found: warn
+          retention-days: 7
+  publish:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: btc-spot-liquidity-${{ github.run_id }}
+          path: data
+      - run: python btc_spot_liquidity.py --check --max-age-seconds 300
+      - name: Publish validated snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/btc_spot_liquidity.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update BTC spot order-book liquidity'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin main
+            python btc_spot_liquidity.py --check --max-age-seconds 300
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 5
+          done
+          exit 1

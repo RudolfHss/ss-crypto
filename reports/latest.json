@@ -1,44 +1,42 @@
 {
   "schema_version": 2,
-  "generated_at_utc": "2026-10-24T09:44:40.930337+00:00",
-  "report_date": "2026-10-24",
+  "generated_at_utc": "2026-10-25T11:55:33.192294+00:00",
+  "report_date": "2026-10-25",
   "test_report": false,
   "data_status": "friss",
   "historical_summary_only": false,
   "current_analysis_allowed": true,
   "new_trade_signal": false,
-  "reasons": [
-    "Nincs összehasonlítható 24 órás dominanciaminta; dominanciatrendet nem állítunk."
-  ],
+  "reasons": [],
   "btc": {
     "status": "friss",
     "exchange": "OKX",
     "market": "BTC/USDT spot",
-    "retrieved_at_utc": "2026-10-24T09:44:40.208185+00:00",
-    "age_seconds": 0.722152,
+    "retrieved_at_utc": "2026-10-25T11:55:32.786220+00:00",
+    "age_seconds": 0.406074,
     "timeframes": {
       "4H": {
         "status": "friss",
         "reasons": [],
         "count": 1000,
-        "last_close_utc": "2026-10-24T08:00:00+00:00",
-        "expected_close_utc": "2026-10-24T08:00:00+00:00",
-        "expected_at_collection_utc": "2026-10-24T08:00:00+00:00",
+        "last_close_utc": "2026-10-25T08:00:00+00:00",
+        "expected_close_utc": "2026-10-25T08:00:00+00:00",
+        "expected_at_collection_utc": "2026-10-25T08:00:00+00:00",
         "indicators": {
-          "close": 80740.9,
-          "change_pct": -0.28048117774923664,
-          "ema20": 81804.12896577686,
-          "ema50": 82147.80508782,
-          "ema200": 82055.10072160189,
+          "close": 80687.9,
+          "change_pct": -0.213577440681878,
+          "ema20": 81254.57088421186,
+          "ema50": 81810.46446876545,
+          "ema200": 81967.88101782207,
           "ema200_samples": 1000,
           "ema200_seed_weight": 4.58523892146475e-05,
           "ema_order": "ár < EMA20 < EMA50",
-          "rsi14": 35.900476597531394,
-          "atr14": 745.6566206245827,
-          "macd": -378.3520323072735,
-          "macd_signal": -201.71075272916207,
-          "macd_hist": -176.6412795781114,
-          "rvol20": 0.3567905228384687,
+          "rsi14": 41.29972235088861,
+          "atr14": 740.2673768928549,
+          "macd": -471.2930112614122,
+          "macd_signal": -414.3840811086312,
+          "macd_hist": -56.908930152780954,
+          "rvol20": 0.5739388320210644,
           "structure": {
             "state": "vegyes / sávos",
             "left": 2,
@@ -57,14 +55,14 @@
             ],
             "lows": [
               {
-                "price": 80924.9,
-                "pivot_at": "2026-10-22T16:00:00+00:00",
-                "confirmed_at": "2026-10-23T04:00:00+00:00"
-              },
-              {
                 "price": 80514.5,
                 "pivot_at": "2026-10-23T20:00:00+00:00",
                 "confirmed_at": "2026-10-24T08:00:00+00:00"
+              },
+              {
+                "price": 79220.1,
+                "pivot_at": "2026-10-24T12:00:00+00:00",
+                "confirmed_at": "2026-10-25T00:00:00+00:00"
               }
             ],
             "method": "strict 2-left/2-right confirmed pivots; no unconfirmed endpoint pivots"
@@ -75,24 +73,24 @@
         "status": "friss",
         "reasons": [],
         "count": 1000,
-        "last_close_utc": "2026-10-24T00:00:00+00:00",
-        "expected_close_utc": "2026-10-24T00:00:00+00:00",
-        "expected_at_collection_utc": "2026-10-24T00:00:00+00:00",
+        "last_close_utc": "2026-10-25T00:00:00+00:00",
+        "expected_close_utc": "2026-10-25T00:00:00+00:00",
+        "expected_at_collection_utc": "2026-10-25T00:00:00+00:00",
         "indicators": {
-          "close": 81188.2,
-          "change_pct": -0.28102239090116443,
-          "ema20": 82490.07234446339,
-          "ema50": 80852.28799881949,
-          "ema200": 76222.8222707468,
+          "close": 80880.9,
+          "change_pct": -0.37850328003330436,
+          "ema20": 82336.81783546688,
+          "ema50": 80853.41003808148,
+          "ema200": 76269.22866998905,
           "ema200_samples": 1000,
           "ema200_seed_weight": 4.58523892146475e-05,
           "ema_order": "vegyes EMA-sorrend",
-          "rsi14": 45.328189486842106,
-          "atr14": 2146.1419535742025,
-          "macd": -51.11575342062861,
-          "macd_signal": 197.2550574243457,
-          "macd_hist": -248.3708108449743,
-          "rvol20": 0.719445485682323,
+          "rsi14": 44.23924109772627,
+          "atr14": 2135.1532426046156,
+          "macd": -163.48428514519765,
+          "macd_signal": 125.10718891043702,
+          "macd_hist": -288.59147405563465,
+          "rvol20": 0.7351776442630678,
           "structure": {
             "state": "emelkedő (HH/HL)",
             "left": 2,
@@ -182,17 +180,17 @@
     },
     "reasons": [],
     "levels": {
-      "seven_day_low": 80514.5,
+      "seven_day_low": 79220.1,
       "seven_day_high": 84899.6,
-      "ema20": 82490.07234446339,
-      "ema50": 80852.28799881949
+      "ema20": 82336.81783546688,
+      "ema50": 80853.41003808148
     },
     "scenario_range": {
-      "lower": 80514.5,
+      "lower": 79220.1,
       "upper": 84899.6,
       "last_two_closes": [
-        80968.0,
-        80740.9
+        80860.6,
+        80687.9
       ],
       "method": "20 closed 4H bars preceding the last two confirmation bars"
     }
@@ -205,26 +203,38 @@
       "source": "CoinGecko /global",
       "endpoint": "https://api.coingecko.com/api/v3/global",
       "methodology": "CoinGecko snapshot; dominance in percent; TOTAL in USD; TOTAL2 excludes BTC; TOTAL3 excludes BTC and ETH. Not TradingView CRYPTOCAP OHLC candles.",
-      "observed_at": "2026-10-24T09:44:40.646Z",
-      "source_updated_at": "2026-10-24T09:37:56.000Z",
+      "observed_at": "2026-10-25T11:55:33.037Z",
+      "source_updated_at": "2026-10-25T11:51:37.000Z",
       "values": {
-        "BTC.D": 60.115246791090506,
-        "ETH.D": 10.706223407036184,
-        "USDT.D": 6.7790094370225225,
-        "USDC.D": 2.66154052924052,
-        "TOTAL": 2682493244322.268,
-        "TOTAL2": 1069905810343.6062,
-        "TOTAL3": 782712090727.8112
+        "BTC.D": 60.08977866450256,
+        "ETH.D": 10.613114588592595,
+        "USDT.D": 6.775521830706809,
+        "USDC.D": 2.657669006379056,
+        "TOTAL": 2688713219458.289,
+        "TOTAL2": 1073071396962.5823,
+        "TOTAL3": 787715182022.8368
       }
     },
-    "source_age_seconds": 404.930337,
-    "observation_age_seconds": 0.284337,
-    "history_count": 52,
-    "change_24h": null
+    "source_age_seconds": 236.192294,
+    "observation_age_seconds": 0.155294,
+    "history_count": 60,
+    "change_24h": {
+      "baseline_at": "2026-10-24T10:58:07.000Z",
+      "interval_hours": 24.891666666666666,
+      "changes": {
+        "BTC.D": 0.0031132710854535617,
+        "ETH.D": -0.11473312681152414,
+        "USDT.D": 0.005638470985366517,
+        "USDC.D": 7.864489229003624e-05,
+        "TOTAL": -0.05167690923678636,
+        "TOTAL2": -0.05947295603129232,
+        "TOTAL3": 0.33057531924414185
+      }
+    }
   },
   "context": {
     "status": "friss",
-    "observed_at": "2026-10-24T09:44:40.918Z",
+    "observed_at": "2026-10-25T11:55:33.180Z",
     "universe_version": "fixed-v1-2026-10-15",
     "components": {
       "stablecoin_caps": {
@@ -233,12 +243,12 @@
           "status": "available",
           "values": {
             "USDT": {
-              "usd": 182466648351,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "usd": 182463752400,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             "USDC": {
-              "usd": 71626710840,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "usd": 71573437123,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             }
           },
           "method": "Actual market_cap USD fields; not inferred from global dominance"
@@ -249,9 +259,9 @@
         "status": "friss",
         "data": {
           "status": "available",
-          "ratio": 0.02932639588228712,
-          "relative_change_24h_pct": -0.18933735576337485,
-          "source_updated_at": "2026-10-24T09:43:51.000Z",
+          "ratio": 0.029069314061491085,
+          "relative_change_24h_pct": -0.9621845693041253,
+          "source_updated_at": "2026-10-25T11:54:48.000Z",
           "method": "ETH USD quote / BTC USD quote; relative rolling-24h return from same API batch; derived cross-rate, not an exchange ETH/BTC candle"
         },
         "reasons": []
@@ -260,73 +270,73 @@
         "status": "friss",
         "data": {
           "status": "available",
-          "advancing": 0,
+          "advancing": 3,
           "denominator": 12,
-          "positive_pct": 0,
+          "positive_pct": 25,
           "coverage": 12,
           "observations": [
             {
               "id": "ethereum",
-              "return_24h_pct": -1.57964,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.96986,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "solana",
-              "return_24h_pct": -2.84784,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.1707,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "binancecoin",
-              "return_24h_pct": -1.82569,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": 1.5924,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "ripple",
-              "return_24h_pct": -3.36503,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": 1.59051,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "dogecoin",
-              "return_24h_pct": -3.80669,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.94864,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "cardano",
-              "return_24h_pct": -4.26936,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -1.51587,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "chainlink",
-              "return_24h_pct": -4.58325,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -1.68365,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "avalanche-2",
-              "return_24h_pct": -4.2039,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.74812,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "polkadot",
-              "return_24h_pct": -11.06106,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -3.54091,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "uniswap",
-              "return_24h_pct": -5.2946,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.75601,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "litecoin",
-              "return_24h_pct": -5.11753,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": 0.09483,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             },
             {
               "id": "near",
-              "return_24h_pct": -9.75172,
-              "source_updated_at": "2026-10-24T09:43:51.000Z"
+              "return_24h_pct": -0.26174,
+              "source_updated_at": "2026-10-25T11:54:48.000Z"
             }
           ],
-          "source_updated_at": "2026-10-24T09:43:51.000Z"
+          "source_updated_at": "2026-10-25T11:54:48.000Z"
         },
         "reasons": []
       }
@@ -336,12 +346,12 @@
   "source_changed": false,
   "previous_report_comparison": {
     "available": true,
-    "baseline_at": "2026-10-23T10:25:40.067426+00:00",
+    "baseline_at": "2026-10-24T09:44:40.930337+00:00",
     "level_changes": {
-      "seven_day_low": -166.0,
+      "seven_day_low": -1294.3999999999942,
       "seven_day_high": 0.0,
-      "ema20": -137.0391941540438,
-      "ema50": 13.71069392573554
+      "ema20": -153.25450899651332,
+      "ema50": 1.1220392619870836
     },
     "reason": "Azonos tőzsde, az előző jelentéshez mért USDT-szintváltozás. Volumeneket nem vonunk össze."
   },
@@ -356,15 +366,15 @@
     },
     {
       "name": "Eső",
-      "confirmation": "Két egymást követő lezárt 4H zárás 80 514.50 USDT alatt és a második gyertyán RVOL20 legalább 1,20.",
-      "invalidation": "Következő lezárt 4H zárás 80 514.50 USDT felett.",
+      "confirmation": "Két egymást követő lezárt 4H zárás 79 220.10 USDT alatt és a második gyertyán RVOL20 legalább 1,20.",
+      "invalidation": "Következő lezárt 4H zárás 79 220.10 USDT felett.",
       "condition_observed": false,
       "evaluation": "feltétel nem teljesül",
       "trade_signal": false
     },
     {
       "name": "Oldalazó",
-      "confirmation": "Az utolsó két lezárt 4H zárás a 80 514.50 - 84 899.60 USDT sávban és RVOL20 1,20 alatt.",
+      "confirmation": "Az utolsó két lezárt 4H zárás a 79 220.10 - 84 899.60 USDT sávban és RVOL20 1,20 alatt.",
       "invalidation": "Lezárt 4H zárás a sávon kívül; az irány megerősítése külön szükséges.",
       "condition_observed": true,
       "evaluation": "lezárt gyertyás feltétel teljesül",
@@ -372,8 +382,8 @@
     }
   ],
   "provenance": {
-    "code_commit": "b5b28b322093bda18f4167c6fa2a97ec8e1228bd",
-    "run_url": "https://github.com/RudolfHss/ss-crypto/actions/runs/40083121527",
+    "code_commit": "f317968d8ab630232e802eb6a8e0d852b299e640",
+    "run_url": "https://github.com/RudolfHss/ss-crypto/actions/runs/40190861677",
     "data_mode": "live provider snapshots",
     "collection_failures": []
   },
@@ -389,7 +399,7 @@
     },
     {
       "type": "paragraph",
-      "text": "Készült: 2026.10.24. 11:44:40 (Europe/Budapest).",
+      "text": "Készült: 2026.10.25. 12:55:33 (Europe/Budapest).",
       "keep_with_next": false
     },
     {
@@ -419,12 +429,7 @@
     },
     {
       "type": "paragraph",
-      "text": "Nincs összehasonlítható 24 órás dominanciaminta; dominanciatrendet nem állítunk.",
-      "keep_with_next": false
-    },
-    {
-      "type": "paragraph",
-      "text": "BTC-lekérés: 2026.10.24. 11:44:40 Budapest; tőzsde: OKX.",
+      "text": "BTC-lekérés: 2026.10.25. 12:55:32 Budapest; tőzsde: OKX.",
       "keep_with_next": false
     },
     {
@@ -434,12 +439,12 @@
     },
     {
       "type": "paragraph",
-      "text": "1D: utolsó lezárt gyertya 2026.10.24. 02:00:00; elvárt zárás 2026.10.24. 02:00:00 Budapest. Állapot: friss.",
+      "text": "1D: utolsó lezárt gyertya 2026.10.25. 02:00:00; elvárt zárás 2026.10.25. 02:00:00 Budapest. Állapot: friss.",
       "keep_with_next": false
     },
     {
       "type": "paragraph",
-      "text": "4H: utolsó lezárt gyertya 2026.10.24. 10:00:00; elvárt zárás 2026.10.24. 10:00:00 Budapest. Állapot: friss.",
+      "text": "4H: utolsó lezárt gyertya 2026.10.25. 09:00:00; elvárt zárás 2026.10.25. 09:00:00 Budapest. Állapot: friss.",
       "keep_with_next": false
     },
     {
@@ -458,12 +463,12 @@
     },
     {
       "type": "paragraph",
-      "text": "Napos trend: csúcs-mélypont szerkezet emelkedő (HH/HL); külön EMA-sorrend: vegyes EMA-sorrend. Utolsó záróár 81 188.20 USDT; előző gyertyához képest -0.28%. RSI14 45.33, MACD-hisztogram -248.37; RVOL20 0.72.",
+      "text": "Napos trend: csúcs-mélypont szerkezet emelkedő (HH/HL); külön EMA-sorrend: vegyes EMA-sorrend. Utolsó záróár 80 880.90 USDT; előző gyertyához képest -0.38%. RSI14 44.24, MACD-hisztogram -288.59; RVOL20 0.74.",
       "keep_with_next": false
     },
     {
       "type": "paragraph",
-      "text": "4H megerősítés: csúcs-mélypont szerkezet vegyes / sávos; külön EMA-sorrend: ár < EMA20 < EMA50. Utolsó záróár 80 740.90 USDT; előző gyertyához képest -0.28%. RSI14 35.90, MACD-hisztogram -176.64; RVOL20 0.36.",
+      "text": "4H megerősítés: csúcs-mélypont szerkezet vegyes / sávos; külön EMA-sorrend: ár < EMA20 < EMA50. Utolsó záróár 80 687.90 USDT; előző gyertyához képest -0.21%. RSI14 41.30, MACD-hisztogram -56.91; RVOL20 0.57.",
       "keep_with_next": false
     },
     {
@@ -478,50 +483,50 @@
         [
           "Záróár (USDT)",
           "82 109.30",
-          "81 188.20",
-          "80 740.90"
+          "80 880.90",
+          "80 687.90"
         ],
         [
           "EMA20",
           "76 355.51",
-          "82 490.07",
-          "81 804.13"
+          "82 336.82",
+          "81 254.57"
         ],
         [
           "EMA50",
           "78 523.82",
-          "80 852.29",
-          "82 147.81"
+          "80 853.41",
+          "81 810.46"
         ],
         [
           "EMA200 (1000+ minta)",
           "nem elérhető",
-          "76 222.82",
-          "82 055.10"
+          "76 269.23",
+          "81 967.88"
         ],
         [
           "RSI14",
           "57.24",
-          "45.33",
-          "35.90"
+          "44.24",
+          "41.30"
         ],
         [
           "MACD-hisztogram",
           "2 288.95",
-          "-248.37",
-          "-176.64"
+          "-288.59",
+          "-56.91"
         ],
         [
           "ATR14 (USDT)",
           "6 142.71",
-          "2 146.14",
-          "745.66"
+          "2 135.15",
+          "740.27"
         ],
         [
           "RVOL20",
           "0.79",
-          "0.72",
-          "0.36"
+          "0.74",
+          "0.57"
         ]
       ],
       "widths": null
@@ -558,7 +563,7 @@
     },
     {
       "type": "paragraph",
-      "text": "4H utolsó megerősített mélypont: 80 514.50 USDT; csak 2026.10.24. 10:00:00 Budapest után volt ismert.",
+      "text": "4H utolsó megerősített mélypont: 79 220.10 USDT; csak 2026.10.25. 02:00:00 Budapest után volt ismert.",
       "keep_with_next": false
     },
     {
@@ -572,7 +577,7 @@
     },
     {
       "type": "paragraph",
-      "text": "Referenciajelentés: 2026.10.23. 12:25:40 Budapest.",
+      "text": "Referenciajelentés: 2026.10.24. 11:44:40 Budapest.",
       "keep_with_next": false
     },
     {
@@ -585,8 +590,8 @@
         ],
         [
           "7 lezárt napi gyertya minimuma",
-          "80 514.50",
-          "-166.00"
+          "79 220.10",
+          "-1 294.40"
         ],
         [
           "7 lezárt napi gyertya maximuma",
@@ -595,13 +600,13 @@
         ],
         [
           "Napi EMA20",
-          "82 490.07",
-          "-137.04"
+          "82 336.82",
+          "-153.25"
         ],
         [
           "Napi EMA50",
-          "80 852.29",
-          "13.71"
+          "80 853.41",
+          "1.12"
         ]
       ],
       "widths": [
@@ -616,7 +621,7 @@
     },
     {
       "type": "paragraph",
-      "text": "CoinGecko forrásidő: 2026.10.24. 11:37:56; lekérés: 2026.10.24. 11:44:40 Budapest. A hét mutató részben algebrailag összefügg, nem hét független jel.",
+      "text": "CoinGecko forrásidő: 2026.10.25. 12:51:37; lekérés: 2026.10.25. 12:55:33 Budapest. A hét mutató részben algebrailag összefügg, nem hét független jel.",
       "keep_with_next": false
     },
     {
@@ -629,38 +634,38 @@
         ],
         [
           "BTC.D",
-          "60.12 %",
-          "nincs referencia"
+          "60.09 %",
+          "0.003 százalékpont"
         ],
         [
           "ETH.D",
-          "10.71 %",
-          "nincs referencia"
+          "10.61 %",
+          "-0.115 százalékpont"
         ],
         [
           "USDT.D",
           "6.78 %",
-          "nincs referencia"
+          "0.006 százalékpont"
         ],
         [
           "USDC.D",
           "2.66 %",
-          "nincs referencia"
+          "0.000 százalékpont"
         ],
         [
           "TOTAL",
-          "2 682 493 244 322.27 USD",
-          "nincs referencia"
+          "2 688 713 219 458.29 USD",
+          "-0.052 %"
         ],
         [
           "TOTAL2",
-          "1 069 905 810 343.61 USD",
-          "nincs referencia"
+          "1 073 071 396 962.58 USD",
+          "-0.059 %"
         ],
         [
           "TOTAL3",
-          "782 712 090 727.81 USD",
-          "nincs referencia"
+          "787 715 182 022.84 USD",
+          "0.331 %"
         ]
       ],
       "widths": [
@@ -671,22 +676,27 @@
     },
     {
       "type": "paragraph",
-      "text": "ETH/BTC relatív erő: 0.029326 BTC/ETH; gördülő 24h relatív változás -0.189%. USD-jegyzésekből származtatott keresztárfolyam, nem tőzsdei ETH/BTC-gyertya.",
+      "text": "24h referencia: 2026.10.24. 12:58:07 Budapest; tényleges időköz 24.89 óra.",
       "keep_with_next": false
     },
     {
       "type": "paragraph",
-      "text": "USDT: 182 466 648 351.00 USD; forrásidő 2026.10.24. 11:43:51 Budapest. A kapitalizáció önmagában nem bizonyít tőkeáramlást.",
+      "text": "ETH/BTC relatív erő: 0.029069 BTC/ETH; gördülő 24h relatív változás -0.962%. USD-jegyzésekből származtatott keresztárfolyam, nem tőzsdei ETH/BTC-gyertya.",
       "keep_with_next": false
     },
     {
       "type": "paragraph",
-      "text": "USDC: 71 626 710 840.00 USD; forrásidő 2026.10.24. 11:43:51 Budapest. A kapitalizáció önmagában nem bizonyít tőkeáramlást.",
+      "text": "USDT: 182 463 752 400.00 USD; forrásidő 2026.10.25. 12:54:48 Budapest. A kapitalizáció önmagában nem bizonyít tőkeáramlást.",
       "keep_with_next": false
     },
     {
       "type": "paragraph",
-      "text": "Rögzített altcoin-univerzum részvétele: 0/12 pozitív gördülő 24h USD-hozam, 0.00%; teljes lefedettség 12/12. Univerzum: ethereum, solana, binancecoin, ripple, dogecoin, cardano, chainlink, avalanche-2, polkadot, uniswap, litecoin, near. A sorozat 2026.10.15-től épül; nincs visszamenőleg kitalált univerzum.",
+      "text": "USDC: 71 573 437 123.00 USD; forrásidő 2026.10.25. 12:54:48 Budapest. A kapitalizáció önmagában nem bizonyít tőkeáramlást.",
+      "keep_with_next": false
+    },
+    {
+      "type": "paragraph",
+      "text": "Rögzített altcoin-univerzum részvétele: 3/12 pozitív gördülő 24h USD-hozam, 25.00%; teljes lefedettség 12/12. Univerzum: ethereum, solana, binancecoin, ripple, dogecoin, cardano, chainlink, avalanche-2, polkadot, uniswap, litecoin, near. A sorozat 2026.10.15-től épül; nincs visszamenőleg kitalált univerzum.",
       "keep_with_next": false
     },
     {
@@ -720,12 +730,12 @@
     },
     {
       "type": "paragraph",
-      "text": "Megerősítés: Két egymást követő lezárt 4H zárás 80 514.50 USDT alatt és a második gyertyán RVOL20 legalább 1,20.",
+      "text": "Megerősítés: Két egymást követő lezárt 4H zárás 79 220.10 USDT alatt és a második gyertyán RVOL20 legalább 1,20.",
       "keep_with_next": true
     },
     {
       "type": "paragraph",
-      "text": "Érvénytelenítés: Következő lezárt 4H zárás 80 514.50 USDT felett.",
+      "text": "Érvénytelenítés: Következő lezárt 4H zárás 79 220.10 USDT felett.",
       "keep_with_next": false
     },
     {
@@ -735,7 +745,7 @@
     },
     {
       "type": "paragraph",
-      "text": "Megerősítés: Az utolsó két lezárt 4H zárás a 80 514.50 - 84 899.60 USDT sávban és RVOL20 1,20 alatt.",
+      "text": "Megerősítés: Az utolsó két lezárt 4H zárás a 79 220.10 - 84 899.60 USDT sávban és RVOL20 1,20 alatt.",
       "keep_with_next": true
     },
     {
@@ -794,9 +804,9 @@
     },
     {
       "type": "paragraph",
-      "text": "Adateredet: {\"code_commit\": \"b5b28b322093bda18f4167c6fa2a97ec8e1228bd\", \"collection_failures\": [], \"data_mode\": \"live provider snapshots\", \"run_url\": \"https://github.com/RudolfHss/ss-crypto/actions/runs/40083121527\"}",
+      "text": "Adateredet: {\"code_commit\": \"f317968d8ab630232e802eb6a8e0d852b299e640\", \"collection_failures\": [], \"data_mode\": \"live provider snapshots\", \"run_url\": \"https://github.com/RudolfHss/ss-crypto/actions/runs/40190861677\"}",
       "keep_with_next": false
     }
   ],
-  "content_sha256": "e15a3f0cead90d9576d69cd915ae425044bef5e7fec8407831e7a9de25174234"
+  "content_sha256": "dc881d439132c662bf414636569a5c388c3fdf7cb8ca405438cc3894ac2b6985"
 }

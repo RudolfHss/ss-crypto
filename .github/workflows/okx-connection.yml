@@ -1,0 +1,40 @@
+name: OKX connection check (read only)
+on:
+  workflow_dispatch:
+    inputs:
+      key_mode:
+        description: 'A megadott API-kulcs típusa (egyik mód sem küld megbízást)'
+        type: choice
+        default: demo
+        options: [demo, live]
+      region:
+        description: 'Fiókrégió: my.okx.com = eea; app.okx.com = us'
+        type: choice
+        default: eea
+        options: [eea, global, us]
+permissions:
+  contents: read
+concurrency:
+  group: okx-connection-check
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline security and signing tests
+        run: python -m unittest -v test_okx_connection_check.py
+      - name: Check authentication without placing orders
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_KEY_MODE: ${{ inputs.key_mode }}
+          OKX_REGION: ${{ inputs.region }}
+        run: python okx_connection_check.py

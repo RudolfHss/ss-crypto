@@ -6,8 +6,8 @@
   "source_changed": false,
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-10-31T20:12:23.096980+00:00",
-  "collection_as_of_utc": "2026-10-31T20:12:14.241074+00:00",
+  "retrieved_at_utc": "2026-10-31T23:35:30.371273+00:00",
+  "collection_as_of_utc": "2026-10-31T23:35:21.175811+00:00",
   "timezone": "UTC; daily 00:00; weekly Monday 00:00",
   "requested_counts": {
     "4H": 1000,

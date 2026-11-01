@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "CoinGecko /coins/markets",
-  "observed_at": "2026-10-31T21:34:20.643Z",
+  "observed_at": "2026-11-01T01:09:57.574Z",
   "universe_version": "fixed-v1-2026-10-15",
   "universe": [
     "ethereum",
@@ -24,92 +24,92 @@
       "status": "available",
       "values": {
         "USDT": {
-          "usd": 180027088877,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "usd": 180025707982,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         "USDC": {
-          "usd": 71719966525,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "usd": 71706109069,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         }
       },
       "method": "Actual market_cap USD fields; not inferred from global dominance"
     },
     "eth_btc": {
       "status": "available",
-      "ratio": 0.029092106962924687,
-      "relative_change_24h_pct": -0.22938987332179472,
-      "source_updated_at": "2026-10-31T21:33:53.000Z",
+      "ratio": 0.029148242630385485,
+      "relative_change_24h_pct": 0.5369723925054304,
+      "source_updated_at": "2026-11-01T01:08:49.000Z",
       "method": "ETH USD quote / BTC USD quote; relative rolling-24h return from same API batch; derived cross-rate, not an exchange ETH/BTC candle"
     },
     "breadth": {
       "status": "available",
-      "advancing": 10,
+      "advancing": 4,
       "denominator": 12,
-      "positive_pct": 83.33333333333334,
+      "positive_pct": 33.33333333333333,
       "coverage": 12,
       "observations": [
         {
           "id": "ethereum",
-          "return_24h_pct": 0.5927,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": 0.71252,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "solana",
-          "return_24h_pct": 0.34042,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -1.08444,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "binancecoin",
-          "return_24h_pct": 0.33815,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -0.42757,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "ripple",
-          "return_24h_pct": 0.1461,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -0.21621,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "dogecoin",
-          "return_24h_pct": 0.51829,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -0.47158,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "cardano",
-          "return_24h_pct": -0.65499,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -1.40739,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "chainlink",
-          "return_24h_pct": 4.76363,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": 0.58674,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "avalanche-2",
-          "return_24h_pct": 1.97275,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -0.59863,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "polkadot",
-          "return_24h_pct": -3.15343,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -2.64273,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "uniswap",
-          "return_24h_pct": 2.10196,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": -0.40036,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "litecoin",
-          "return_24h_pct": 1.25324,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": 0.17713,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         },
         {
           "id": "near",
-          "return_24h_pct": 2.49349,
-          "source_updated_at": "2026-10-31T21:33:53.000Z"
+          "return_24h_pct": 1.58735,
+          "source_updated_at": "2026-11-01T01:08:49.000Z"
         }
       ],
-      "source_updated_at": "2026-10-31T21:33:53.000Z"
+      "source_updated_at": "2026-11-01T01:08:49.000Z"
     }
   }
 }

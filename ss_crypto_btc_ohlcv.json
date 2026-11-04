@@ -6,8 +6,8 @@
   "source_changed": false,
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-11-04T10:40:46.081418+00:00",
-  "collection_as_of_utc": "2026-11-04T10:40:39.200949+00:00",
+  "retrieved_at_utc": "2026-11-04T18:30:50.689577+00:00",
+  "collection_as_of_utc": "2026-11-04T18:30:42.701565+00:00",
   "timezone": "UTC; daily 00:00; weekly Monday 00:00",
   "requested_counts": {
     "4H": 1000,
@@ -22,24 +22,6 @@
   "ema200_minimum": 1000,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-05-21T16:00:00+00:00",
-        "open_time_ms": 1779379200000,
-        "open": 77262.8,
-        "high": 78100.0,
-        "low": 77011.0,
-        "close": 77688.4,
-        "volume_base": 1262.36984483
-      },
-      {
-        "open_time_utc": "2026-05-21T20:00:00+00:00",
-        "open_time_ms": 1779393600000,
-        "open": 77688.4,
-        "high": 77814.2,
-        "low": 77529.1,
-        "close": 77619.7,
-        "volume_base": 468.3114459
-      },
       {
         "open_time_utc": "2026-05-22T00:00:00+00:00",
         "open_time_ms": 1779408000000,
@@ -9021,6 +9003,24 @@
         "low": 76425.9,
         "close": 78129.6,
         "volume_base": 1976.54946769
+      },
+      {
+        "open_time_utc": "2026-11-04T08:00:00+00:00",
+        "open_time_ms": 1793779200000,
+        "open": 78129.6,
+        "high": 78725.5,
+        "low": 78129.6,
+        "close": 78474.1,
+        "volume_base": 931.31661766
+      },
+      {
+        "open_time_utc": "2026-11-04T12:00:00+00:00",
+        "open_time_ms": 1793793600000,
+        "open": 78474.0,
+        "high": 81200.0,
+        "low": 78006.3,
+        "close": 80299.9,
+        "volume_base": 3046.20517029
       }
     ],
     "1D": [

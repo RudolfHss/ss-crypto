@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "CoinGecko /coins/markets",
-  "observed_at": "2026-11-08T00:35:48.028Z",
+  "observed_at": "2026-11-08T07:20:36.812Z",
   "universe_version": "fixed-v1-2026-10-15",
   "universe": [
     "ethereum",
@@ -24,21 +24,21 @@
       "status": "available",
       "values": {
         "USDT": {
-          "usd": 176835314902,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "usd": 176852056985,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         "USDC": {
-          "usd": 70469976068,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "usd": 70476077383,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         }
       },
       "method": "Actual market_cap USD fields; not inferred from global dominance"
     },
     "eth_btc": {
       "status": "available",
-      "ratio": 0.029510152317793307,
-      "relative_change_24h_pct": 0.017377166283250034,
-      "source_updated_at": "2026-11-08T00:34:49.000Z",
+      "ratio": 0.02947530945657051,
+      "relative_change_24h_pct": -0.2406452166438422,
+      "source_updated_at": "2026-11-08T07:19:51.000Z",
       "method": "ETH USD quote / BTC USD quote; relative rolling-24h return from same API batch; derived cross-rate, not an exchange ETH/BTC candle"
     },
     "breadth": {
@@ -50,66 +50,66 @@
       "observations": [
         {
           "id": "ethereum",
-          "return_24h_pct": -0.19654,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -0.47081,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "solana",
-          "return_24h_pct": -0.80325,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.20333,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "binancecoin",
-          "return_24h_pct": 0.29543,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": 0.51022,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "ripple",
-          "return_24h_pct": -1.55378,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -0.71045,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "dogecoin",
-          "return_24h_pct": -1.39217,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.21268,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "cardano",
-          "return_24h_pct": -1.68869,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -2.62344,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "chainlink",
-          "return_24h_pct": -0.33768,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.18544,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "avalanche-2",
-          "return_24h_pct": -1.56458,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.92331,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "polkadot",
-          "return_24h_pct": -1.57211,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.36616,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "uniswap",
-          "return_24h_pct": 3.52159,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": 0.73572,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "litecoin",
-          "return_24h_pct": -0.75227,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -0.79424,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         },
         {
           "id": "near",
-          "return_24h_pct": -0.57548,
-          "source_updated_at": "2026-11-08T00:34:49.000Z"
+          "return_24h_pct": -1.14197,
+          "source_updated_at": "2026-11-08T07:19:51.000Z"
         }
       ],
-      "source_updated_at": "2026-11-08T00:34:49.000Z"
+      "source_updated_at": "2026-11-08T07:19:51.000Z"
     }
   }
 }

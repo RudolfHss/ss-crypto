@@ -6,8 +6,8 @@
   "source_changed": false,
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-11-16T07:46:38.030837+00:00",
-  "collection_as_of_utc": "2026-11-16T07:46:29.500665+00:00",
+  "retrieved_at_utc": "2026-11-16T18:10:23.848329+00:00",
+  "collection_as_of_utc": "2026-11-16T18:10:16.039747+00:00",
   "timezone": "UTC; daily 00:00; weekly Monday 00:00",
   "requested_counts": {
     "4H": 1000,
@@ -22,33 +22,6 @@
   "ema200_minimum": 1000,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-06-02T12:00:00+00:00",
-        "open_time_ms": 1780401600000,
-        "open": 69457.7,
-        "high": 69546.7,
-        "low": 67082.0,
-        "close": 67303.0,
-        "volume_base": 4593.8384262
-      },
-      {
-        "open_time_utc": "2026-06-02T16:00:00+00:00",
-        "open_time_ms": 1780416000000,
-        "open": 67303.0,
-        "high": 68141.0,
-        "low": 66402.8,
-        "close": 67330.0,
-        "volume_base": 2164.67470481
-      },
-      {
-        "open_time_utc": "2026-06-02T20:00:00+00:00",
-        "open_time_ms": 1780430400000,
-        "open": 67322.1,
-        "high": 67923.9,
-        "low": 66201.3,
-        "close": 66757.5,
-        "volume_base": 1855.12816576
-      },
       {
         "open_time_utc": "2026-06-03T00:00:00+00:00",
         "open_time_ms": 1780444800000,
@@ -9021,6 +8994,33 @@
         "low": 64556.4,
         "close": 65113.2,
         "volume_base": 1210.52067388
+      },
+      {
+        "open_time_utc": "2026-11-16T04:00:00+00:00",
+        "open_time_ms": 1794801600000,
+        "open": 65115.9,
+        "high": 65193.5,
+        "low": 64300.0,
+        "close": 64988.7,
+        "volume_base": 1795.90332851
+      },
+      {
+        "open_time_utc": "2026-11-16T08:00:00+00:00",
+        "open_time_ms": 1794816000000,
+        "open": 64989.3,
+        "high": 64994.2,
+        "low": 64124.5,
+        "close": 64447.5,
+        "volume_base": 1827.39535291
+      },
+      {
+        "open_time_utc": "2026-11-16T12:00:00+00:00",
+        "open_time_ms": 1794830400000,
+        "open": 64447.5,
+        "high": 65687.0,
+        "low": 63910.0,
+        "close": 64466.2,
+        "volume_base": 3100.39639339
       }
     ],
     "1D": [

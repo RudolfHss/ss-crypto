@@ -7013,5 +7013,120 @@
         "source_updated_at": "2026-11-17T22:23:59.000Z"
       }
     }
+  },
+  {
+    "schema_version": 1,
+    "source": "CoinGecko /coins/markets",
+    "observed_at": "2026-11-18T04:21:09.296Z",
+    "universe_version": "fixed-v1-2026-10-15",
+    "universe": [
+      "ethereum",
+      "solana",
+      "binancecoin",
+      "ripple",
+      "dogecoin",
+      "cardano",
+      "chainlink",
+      "avalanche-2",
+      "polkadot",
+      "uniswap",
+      "litecoin",
+      "near"
+    ],
+    "universe_started_at": "2026-10-15",
+    "methodology": "Forward fixed-universe equal-count breadth: positive rolling-24h USD return; full 12/12 coverage required. Not historical universe reconstruction, fund flows, or a TOTAL3 alias.",
+    "components": {
+      "stablecoin_caps": {
+        "status": "available",
+        "values": {
+          "USDT": {
+            "usd": 175293032962,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          "USDC": {
+            "usd": 68904220088,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          }
+        },
+        "method": "Actual market_cap USD fields; not inferred from global dominance"
+      },
+      "eth_btc": {
+        "status": "available",
+        "ratio": 0.02800784398834253,
+        "relative_change_24h_pct": -0.46115997783001683,
+        "source_updated_at": "2026-11-18T04:20:51.000Z",
+        "method": "ETH USD quote / BTC USD quote; relative rolling-24h return from same API batch; derived cross-rate, not an exchange ETH/BTC candle"
+      },
+      "breadth": {
+        "status": "available",
+        "advancing": 5,
+        "denominator": 12,
+        "positive_pct": 41.66666666666667,
+        "coverage": 12,
+        "observations": [
+          {
+            "id": "ethereum",
+            "return_24h_pct": -1.13459,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "solana",
+            "return_24h_pct": 2.78328,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "binancecoin",
+            "return_24h_pct": -0.22129,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "ripple",
+            "return_24h_pct": 1.43953,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "dogecoin",
+            "return_24h_pct": 0.18971,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "cardano",
+            "return_24h_pct": -0.73273,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "chainlink",
+            "return_24h_pct": 0.24221,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "avalanche-2",
+            "return_24h_pct": -0.79351,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "polkadot",
+            "return_24h_pct": -1.64806,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "uniswap",
+            "return_24h_pct": -1.20253,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "litecoin",
+            "return_24h_pct": -0.85798,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          },
+          {
+            "id": "near",
+            "return_24h_pct": 4.3367,
+            "source_updated_at": "2026-11-18T04:20:51.000Z"
+          }
+        ],
+        "source_updated_at": "2026-11-18T04:20:51.000Z"
+      }
+    }
   }
 ]

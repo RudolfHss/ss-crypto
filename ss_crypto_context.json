@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "CoinGecko /coins/markets",
-  "observed_at": "2026-11-23T09:04:55.604Z",
+  "observed_at": "2026-11-23T21:24:40.201Z",
   "universe_version": "fixed-v1-2026-10-15",
   "universe": [
     "ethereum",
@@ -24,92 +24,92 @@
       "status": "available",
       "values": {
         "USDT": {
-          "usd": 174654518401,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "usd": 174695919282,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         "USDC": {
-          "usd": 68419151572,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "usd": 69002499613,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         }
       },
       "method": "Actual market_cap USD fields; not inferred from global dominance"
     },
     "eth_btc": {
       "status": "available",
-      "ratio": 0.02803886782011426,
-      "relative_change_24h_pct": -0.6500465568762381,
-      "source_updated_at": "2026-11-23T09:03:55.000Z",
+      "ratio": 0.028075359574224936,
+      "relative_change_24h_pct": -0.7222564088289474,
+      "source_updated_at": "2026-11-23T21:23:41.000Z",
       "method": "ETH USD quote / BTC USD quote; relative rolling-24h return from same API batch; derived cross-rate, not an exchange ETH/BTC candle"
     },
     "breadth": {
       "status": "available",
-      "advancing": 12,
+      "advancing": 9,
       "denominator": 12,
-      "positive_pct": 100,
+      "positive_pct": 75,
       "coverage": 12,
       "observations": [
         {
           "id": "ethereum",
-          "return_24h_pct": 2.20544,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": -0.13483,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "solana",
-          "return_24h_pct": 3.67294,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 3.2895,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "binancecoin",
-          "return_24h_pct": 2.36883,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": -0.05864,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "ripple",
-          "return_24h_pct": 1.47291,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 1.03224,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "dogecoin",
-          "return_24h_pct": 1.62201,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 2.29946,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "cardano",
-          "return_24h_pct": 1.69627,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 2.10934,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "chainlink",
-          "return_24h_pct": 3.35603,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 1.85127,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "avalanche-2",
-          "return_24h_pct": 1.93527,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 1.77762,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "polkadot",
-          "return_24h_pct": 2.71697,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 2.52239,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "uniswap",
-          "return_24h_pct": 2.11021,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 2.51769,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "litecoin",
-          "return_24h_pct": 3.24895,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": 2.88282,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         },
         {
           "id": "near",
-          "return_24h_pct": 2.86449,
-          "source_updated_at": "2026-11-23T09:03:55.000Z"
+          "return_24h_pct": -0.27011,
+          "source_updated_at": "2026-11-23T21:23:41.000Z"
         }
       ],
-      "source_updated_at": "2026-11-23T09:03:55.000Z"
+      "source_updated_at": "2026-11-23T21:23:41.000Z"
     }
   }
 }

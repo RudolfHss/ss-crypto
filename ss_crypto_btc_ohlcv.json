@@ -6,8 +6,8 @@
   "source_changed": false,
   "market": "BTC/USDT",
   "market_type": "spot",
-  "retrieved_at_utc": "2026-11-22T22:24:48.957897+00:00",
-  "collection_as_of_utc": "2026-11-22T22:24:40.222149+00:00",
+  "retrieved_at_utc": "2026-11-23T02:59:45.057273+00:00",
+  "collection_as_of_utc": "2026-11-23T02:59:36.234244+00:00",
   "timezone": "UTC; daily 00:00; weekly Monday 00:00",
   "requested_counts": {
     "4H": 1000,
@@ -17,20 +17,11 @@
   "actual_counts": {
     "4H": 1000,
     "1D": 1000,
-    "1W": 462
+    "1W": 463
   },
   "ema200_minimum": 1000,
   "timeframes": {
     "4H": [
-      {
-        "open_time_utc": "2026-06-09T04:00:00+00:00",
-        "open_time_ms": 1780977600000,
-        "open": 62875.9,
-        "high": 63523.8,
-        "low": 62750.9,
-        "close": 63198.5,
-        "volume_base": 897.67390805
-      },
       {
         "open_time_utc": "2026-06-09T08:00:00+00:00",
         "open_time_ms": 1780992000000,
@@ -9021,18 +9012,18 @@
         "low": 60546.1,
         "close": 60741.6,
         "volume_base": 914.77401249
+      },
+      {
+        "open_time_utc": "2026-11-22T20:00:00+00:00",
+        "open_time_ms": 1795377600000,
+        "open": 60741.7,
+        "high": 61405.7,
+        "low": 60580.5,
+        "close": 61268.8,
+        "volume_base": 866.75962941
       }
     ],
     "1D": [
-      {
-        "open_time_utc": "2024-02-26T00:00:00+00:00",
-        "open_time_ms": 1708905600000,
-        "open": 51731.4,
-        "high": 54923.0,
-        "low": 50902.2,
-        "close": 54471.0,
-        "volume_base": 15063.98807421
-      },
       {
         "open_time_utc": "2024-02-27T00:00:00+00:00",
         "open_time_ms": 1708992000000,
@@ -18023,6 +18014,15 @@
         "low": 55134.0,
         "close": 60213.4,
         "volume_base": 19282.42861666
+      },
+      {
+        "open_time_utc": "2026-11-22T00:00:00+00:00",
+        "open_time_ms": 1795305600000,
+        "open": 60213.4,
+        "high": 61670.7,
+        "low": 58768.1,
+        "close": 61268.8,
+        "volume_base": 7703.63887974
       }
     ],
     "1W": [
@@ -22183,6 +22183,15 @@
         "low": 62000.0,
         "close": 65348.3,
         "volume_base": 77193.58389456
+      },
+      {
+        "open_time_utc": "2026-11-16T00:00:00+00:00",
+        "open_time_ms": 1794787200000,
+        "open": 65348.3,
+        "high": 65687.0,
+        "low": 55134.0,
+        "close": 61268.8,
+        "volume_base": 84976.96449462
       }
     ]
   },

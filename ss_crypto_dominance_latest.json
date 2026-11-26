@@ -3,15 +3,15 @@
   "source": "CoinGecko /global",
   "endpoint": "https://api.coingecko.com/api/v3/global",
   "methodology": "CoinGecko snapshot; dominance in percent; TOTAL in USD; TOTAL2 excludes BTC; TOTAL3 excludes BTC and ETH. Not TradingView CRYPTOCAP OHLC candles.",
-  "observed_at": "2026-11-26T05:03:49.795Z",
-  "source_updated_at": "2026-11-26T04:58:42.000Z",
+  "observed_at": "2026-11-26T15:16:08.601Z",
+  "source_updated_at": "2026-11-26T15:10:36.000Z",
   "values": {
-    "BTC.D": 57.926503473330605,
-    "ETH.D": 9.830690284480486,
-    "USDT.D": 8.226431588560313,
-    "USDC.D": 3.280494643565609,
-    "TOTAL": 2107036581419.4119,
-    "TOTAL2": 886503962899.1498,
-    "TOTAL3": 679367722399.1018
+    "BTC.D": 57.914738037151615,
+    "ETH.D": 9.80669972484281,
+    "USDT.D": 8.342739811979264,
+    "USDC.D": 3.324370736785806,
+    "TOTAL": 2060178989494.249,
+    "TOTAL2": 867031724632.2174,
+    "TOTAL3": 664996157338.2157
   }
 }
